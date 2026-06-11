@@ -18,7 +18,7 @@ export class AppConfigService {
     return this.config.get('CORS_ORIGIN', { infer: true });
   }
 
-  get databaseUrl(): string | undefined {
+  get databaseUrl(): string {
     return this.config.get('DATABASE_URL', { infer: true });
   }
 

@@ -7,8 +7,7 @@ export const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(DEFAULT_PORT),
   CORS_ORIGIN: z.string().url().default(DEFAULT_CORS_ORIGIN),
-  // Required from Phase 1 (DB); optional now so the app boots during scaffold.
-  DATABASE_URL: z.string().url().optional(),
+  DATABASE_URL: z.string().url(),
   // Optional: absent means the mock LLM is used (default in tests/CI).
   GROQ_API_KEY: z.string().min(1).optional(),
 });
