@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Next.js generates this on dev/build; keep it out of version control
+next-env.d.ts
+
+# Tests / coverage
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+logs/
+
+# Environment — never commit secrets; keep the example template
+.env
+.env.*
+!.env.example
+
+# Local embedding-model cache (transformers.js downloads weights here)
+.cache/
+**/.cache/
+models/
+*.onnx
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Claude / AI assistant artifacts — kept local, out of the public repo
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.claude*/
+
+# Internal planning docs — kept local, out of the public repo
+docs/

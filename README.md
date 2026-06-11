@@ -12,8 +12,8 @@
 
 ## What it does
 
-1. **Ingest** — drop in PDFs / `.txt` / `.md`. The API extracts text, splits it into
-   overlapping chunks, embeds each chunk, and stores the vectors in Postgres (pgvector).
+1. **Ingest** — paste text or drop in PDFs / `.txt` / `.md`. The API extracts text, splits it
+   into overlapping chunks, embeds each chunk, and stores the vectors in Postgres (pgvector).
 2. **Retrieve** — your question is embedded and matched against the corpus via cosine
    similarity to pull the most relevant chunks.
 3. **Generate** — retrieved context + question go to a Groq-hosted LLM, which streams an
@@ -36,34 +36,34 @@ chunks so the pipeline still runs (also what tests/CI use — no external calls,
 
 ## Architecture
 
-```
-┌──────────────┐   question/upload    ┌─────────────────────────────┐
-│  Next.js web │ ───────────────────▶ │          NestJS API         │
-│ (chat + SSE) │ ◀─ streamed tokens ─ │                             │
-└──────────────┘                      │  Documents  ─ chunk + embed │
-                                      │  Retrieval  ─ vector search │
-                                      │  Chat       ─ Groq / mock   │
-                                      └───────┬──────────────┬──────┘
-                                              │              │
-                                   embeddings │              │ vectors
-                                   (local,    ▼              ▼
-                                  transformers.js)   ┌────────────────┐
-                                                     │ Postgres +     │
-                                                     │ pgvector       │
-                                                     └────────────────┘
+```mermaid
+flowchart LR
+    web["Next.js web<br/>(chat + SSE)"]
+    api["NestJS API<br/>documents · retrieval · chat"]
+    emb["Local embeddings<br/>(transformers.js)"]
+    db[("Postgres + pgvector")]
+    llm["Groq LLM<br/>(mock fallback)"]
+
+    web -- "upload / question" --> api
+    api -- "streamed tokens (SSE)" --> web
+    api -- "chunk & embed / embed query" --> emb
+    api -- "store / cosine search" --> db
+    api -- "context + question" --> llm
+    llm -- "streamed answer" --> api
 ```
 
 ## Tech stack
 
-| Layer       | Choice                                                    |
-| ----------- | --------------------------------------------------------- |
-| Frontend    | Next.js (App Router), React, TypeScript                   |
-| Backend     | NestJS, TypeScript                                        |
-| Embeddings  | `@xenova/transformers` — `all-MiniLM-L6-v2` (384-dim)     |
-| Vector DB   | Postgres 16 + `pgvector`                                  |
-| LLM         | Groq (OpenAI-compatible) — Llama 3.3 70B, with mock fallback |
-| Transport   | Server-Sent Events for token streaming                    |
-| Tooling     | pnpm workspaces, Docker Compose, GitHub Actions, ESLint   |
+| Layer       | Choice                                                       |
+| ----------- | ------------------------------------------------------------ |
+| Frontend    | Next.js (App Router), React, TypeScript, Tailwind CSS        |
+| Backend     | NestJS, Prisma, TypeScript                                   |
+| Embeddings  | `@xenova/transformers` — `all-MiniLM-L6-v2` (384-dim)        |
+| Vector DB   | Postgres 16 + `pgvector` (Prisma + raw SQL for `<=>`)        |
+| LLM         | Groq (`groq-sdk`) — Llama 3.3 70B, with mock fallback        |
+| Validation  | Zod via `nestjs-zod`                                         |
+| Transport   | Server-Sent Events for token streaming                       |
+| Tooling     | pnpm workspaces, Docker Compose, GitHub Actions, ESLint      |
 
 ## Quickstart
 
@@ -92,22 +92,17 @@ pnpm --filter web dev         # http://localhost:3000
 ```
 rag-doc-qa/
 ├── apps/
-│   ├── api/        # NestJS: documents, embeddings, vector, retrieval, chat
-│   └── web/        # Next.js: upload + chat UI with streaming & citations
+│   ├── api/        # NestJS: documents, embeddings, retrieval, chat
+│   └── web/        # Next.js: add-content + chat UI with streaming & citations
 ├── docker-compose.yml
 ├── .github/workflows/ci.yml
 └── README.md
 ```
 
-## Roadmap / scope
+## Roadmap / out of scope (v1)
 
-- [ ] Document ingestion (PDF/txt/md) + chunking
-- [ ] Local embeddings service (pluggable interface, fake embedder for tests)
-- [ ] pgvector store + cosine retrieval
-- [ ] Groq streaming chat with citations + mock fallback
-- [ ] Next.js upload + chat UI
-- [ ] Tests (unit + e2e) and GitHub Actions CI
-- [ ] Demo GIF + deployed link
+OCR for scanned PDFs · document management/delete · multi-turn chat · hybrid search · auth ·
+observability · rate limiting · deployed demo link.
 
 ## License
 
