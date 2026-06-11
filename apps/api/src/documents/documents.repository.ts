@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentStatus, Prisma, type Document } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import type { EmbeddedChunk } from './documents.types';
+import type { EmbeddedChunk, RetrievedChunk } from './documents.types';
 
 export interface NewDocument {
   filename: string;
@@ -37,6 +37,23 @@ export class DocumentsRepository {
 
   async setStatus(id: string, status: DocumentStatus): Promise<void> {
     await this.prisma.document.update({ where: { id }, data: { status } });
+  }
+
+  /** Cosine top-k over the pgvector column; score = 1 - distance (higher is closer). */
+  findSimilarChunks(embedding: number[], limit: number): Promise<RetrievedChunk[]> {
+    const vector = toVector(embedding);
+    return this.prisma.$queryRaw<RetrievedChunk[]>`
+      SELECT c.document_id AS "documentId",
+             d.filename AS "filename",
+             c.chunk_index AS "chunkIndex",
+             c.content AS "content",
+             1 - (c.embedding <=> ${vector}::vector) AS "score"
+      FROM chunks c
+      JOIN documents d ON d.id = c.document_id
+      WHERE c.embedding IS NOT NULL
+      ORDER BY c.embedding <=> ${vector}::vector
+      LIMIT ${limit}
+    `;
   }
 
   countChunks(documentId: string): Promise<number> {
