@@ -1,0 +1,56 @@
+import { BadRequestException } from '@nestjs/common';
+import { mockDeep } from 'jest-mock-extended';
+import { DocumentStatus, type Document } from '@prisma/client';
+import { IngestionService } from './ingestion.service';
+import { DocumentsRepository } from './documents.repository';
+import { TextExtractorService } from './text-extractor.service';
+
+function setup() {
+  const repo = mockDeep<DocumentsRepository>();
+  const extractor = mockDeep<TextExtractorService>();
+  const service = new IngestionService(repo, extractor);
+  const doc: Document = {
+    id: 'd1',
+    filename: 'a.txt',
+    contentType: 'text/plain',
+    status: DocumentStatus.PENDING,
+    createdAt: new Date(),
+  };
+  repo.createDocument.mockResolvedValue(doc);
+  return { repo, extractor, service };
+}
+
+describe('IngestionService', () => {
+  it('ingests pasted text: creates a document, saves chunks, marks ready', async () => {
+    const { repo, service } = setup();
+
+    const result = await service.ingestText({ text: 'some content to chunk' });
+
+    expect(repo.createDocument).toHaveBeenCalled();
+    expect(repo.saveChunks).toHaveBeenCalledWith('d1', expect.any(Array));
+    expect(repo.setStatus).toHaveBeenCalledWith('d1', DocumentStatus.READY);
+    expect(result.chunks).toBeGreaterThan(0);
+  });
+
+  it('extracts text from an uploaded file before persisting', async () => {
+    const { repo, extractor, service } = setup();
+    extractor.extract.mockResolvedValue('extracted file text');
+
+    await service.ingestFile({
+      originalname: 'f.pdf',
+      mimetype: 'application/pdf',
+      buffer: Buffer.from('x'),
+    });
+
+    expect(extractor.extract).toHaveBeenCalledWith(expect.any(Buffer), 'application/pdf');
+    expect(repo.createDocument).toHaveBeenCalledWith({
+      filename: 'f.pdf',
+      contentType: 'application/pdf',
+    });
+  });
+
+  it('rejects documents with no extractable text', async () => {
+    const { service } = setup();
+    await expect(service.ingestText({ text: '   ' })).rejects.toBeInstanceOf(BadRequestException);
+  });
+});

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Document } from '@prisma/client';
+import { DocumentStatus, type Document } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface NewDocument {
@@ -29,6 +29,20 @@ export class DocumentsRepository {
       INSERT INTO chunks (id, document_id, chunk_index, content, embedding, created_at)
       VALUES (gen_random_uuid(), ${input.documentId}::uuid, ${input.index}, ${input.content}, ${vector}::vector, now())
     `;
+  }
+
+  /** Bulk-inserts chunk text without embeddings; embeddings are added in a later phase. */
+  async saveChunks(documentId: string, contents: string[]): Promise<void> {
+    if (contents.length === 0) {
+      return;
+    }
+    await this.prisma.chunk.createMany({
+      data: contents.map((content, index) => ({ documentId, index, content })),
+    });
+  }
+
+  async setStatus(id: string, status: DocumentStatus): Promise<void> {
+    await this.prisma.document.update({ where: { id }, data: { status } });
   }
 
   countChunks(documentId: string): Promise<number> {
