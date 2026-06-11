@@ -5,7 +5,14 @@ import { validateEnv } from './env.schema';
 
 @Global()
 @Module({
-  imports: [NestConfigModule.forRoot({ isGlobal: true, validate: validateEnv })],
+  imports: [
+    // '.env' covers cwd = repo root; '../../.env' covers cwd = apps/api (pnpm filter runs).
+    NestConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnv,
+      envFilePath: ['.env', '../../.env'],
+    }),
+  ],
   providers: [AppConfigService],
   exports: [AppConfigService],
 })

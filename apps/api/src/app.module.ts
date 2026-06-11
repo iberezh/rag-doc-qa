@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EmbeddingsModule } from './embeddings/embeddings.module';
 import { DocumentsModule } from './documents/documents.module';
 import { RetrievalModule } from './retrieval/retrieval.module';
+import { ChatModule } from './chat/chat.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
     EmbeddingsModule,
     DocumentsModule,
     RetrievalModule,
+    ChatModule,
     HealthModule,
   ],
 })
