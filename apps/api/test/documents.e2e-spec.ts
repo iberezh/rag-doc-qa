@@ -3,13 +3,19 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DocumentsRepository } from '../src/documents/documents.repository';
+import { EMBEDDER } from '../src/embeddings/embedder';
+import { FakeEmbedder } from '../src/embeddings/fake.embedder';
 
 describe('Document ingestion (e2e)', () => {
   let app: INestApplication;
   let repo: DocumentsRepository;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    // Use the deterministic embedder so e2e never downloads a model.
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(EMBEDDER)
+      .useClass(FakeEmbedder)
+      .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();

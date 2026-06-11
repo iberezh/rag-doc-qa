@@ -28,7 +28,7 @@ describe('Documents persistence (e2e)', () => {
   it('stores a 384-dim chunk embedding and finds it by cosine distance', async () => {
     const doc = await repo.createDocument({ filename: 'sample.txt', contentType: 'text/plain' });
     const embedding = Array.from({ length: EMBEDDING_DIM }, (_, i) => (i === 0 ? 1 : 0));
-    await repo.addChunk({ documentId: doc.id, index: 0, content: 'hello world', embedding });
+    await repo.saveChunks(doc.id, [{ content: 'hello world', embedding }]);
 
     expect(await repo.countChunks(doc.id)).toBe(1);
 

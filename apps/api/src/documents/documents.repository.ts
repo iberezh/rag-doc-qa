@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { DocumentStatus, type Document } from '@prisma/client';
+import { DocumentStatus, Prisma, type Document } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import type { EmbeddedChunk } from './documents.types';
 
 export interface NewDocument {
   filename: string;
   contentType: string;
 }
 
-export interface NewChunk {
-  documentId: string;
-  index: number;
-  content: string;
-  embedding: number[];
+function toVector(embedding: number[]): string {
+  return `[${embedding.join(',')}]`;
 }
 
 @Injectable()
@@ -22,23 +20,19 @@ export class DocumentsRepository {
     return this.prisma.document.create({ data: input });
   }
 
-  /** pgvector columns are an Unsupported type in Prisma, so chunks insert via raw SQL. */
-  async addChunk(input: NewChunk): Promise<void> {
-    const vector = `[${input.embedding.join(',')}]`;
-    await this.prisma.$executeRaw`
-      INSERT INTO chunks (id, document_id, chunk_index, content, embedding, created_at)
-      VALUES (gen_random_uuid(), ${input.documentId}::uuid, ${input.index}, ${input.content}, ${vector}::vector, now())
-    `;
-  }
-
-  /** Bulk-inserts chunk text without embeddings; embeddings are added in a later phase. */
-  async saveChunks(documentId: string, contents: string[]): Promise<void> {
-    if (contents.length === 0) {
+  /** Single batched insert. pgvector is an Unsupported Prisma type, so this uses raw SQL. */
+  async saveChunks(documentId: string, chunks: EmbeddedChunk[]): Promise<void> {
+    if (chunks.length === 0) {
       return;
     }
-    await this.prisma.chunk.createMany({
-      data: contents.map((content, index) => ({ documentId, index, content })),
-    });
+    const rows = chunks.map(
+      (chunk, index) =>
+        Prisma.sql`(gen_random_uuid(), ${documentId}::uuid, ${index}, ${chunk.content}, ${toVector(chunk.embedding)}::vector, now())`,
+    );
+    await this.prisma.$executeRaw`
+      INSERT INTO chunks (id, document_id, chunk_index, content, embedding, created_at)
+      VALUES ${Prisma.join(rows)}
+    `;
   }
 
   async setStatus(id: string, status: DocumentStatus): Promise<void> {

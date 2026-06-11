@@ -4,11 +4,13 @@ import { DocumentStatus, type Document } from '@prisma/client';
 import { IngestionService } from './ingestion.service';
 import { DocumentsRepository } from './documents.repository';
 import { TextExtractorService } from './text-extractor.service';
+import { FakeEmbedder } from '../embeddings/fake.embedder';
+import { EMBEDDING_DIMENSION } from '../embeddings/embedder';
 
 function setup() {
   const repo = mockDeep<DocumentsRepository>();
   const extractor = mockDeep<TextExtractorService>();
-  const service = new IngestionService(repo, extractor);
+  const service = new IngestionService(repo, extractor, new FakeEmbedder());
   const doc: Document = {
     id: 'd1',
     filename: 'a.txt',
@@ -27,9 +29,11 @@ describe('IngestionService', () => {
     const result = await service.ingestText({ text: 'some content to chunk' });
 
     expect(repo.createDocument).toHaveBeenCalled();
-    expect(repo.saveChunks).toHaveBeenCalledWith('d1', expect.any(Array));
     expect(repo.setStatus).toHaveBeenCalledWith('d1', DocumentStatus.READY);
     expect(result.chunks).toBeGreaterThan(0);
+
+    const saved = repo.saveChunks.mock.calls[0]?.[1];
+    expect(saved?.[0]?.embedding).toHaveLength(EMBEDDING_DIMENSION);
   });
 
   it('extracts text from an uploaded file before persisting', async () => {

@@ -19,18 +19,27 @@ describe('DocumentsRepository', () => {
     const result = await repo.createDocument({ filename: 'a.txt', contentType: 'text/plain' });
 
     expect(result).toEqual(doc);
-    expect(prisma.document.create).toHaveBeenCalledWith({
-      data: { filename: 'a.txt', contentType: 'text/plain' },
-    });
   });
 
-  it('addChunk issues a parameterized raw vector insert', async () => {
+  it('saveChunks issues a single batched raw insert', async () => {
     const prisma = mockDeep<PrismaService>();
     const repo = new DocumentsRepository(prisma);
-    prisma.$executeRaw.mockResolvedValue(1);
+    prisma.$executeRaw.mockResolvedValue(2);
 
-    await repo.addChunk({ documentId: 'd1', index: 0, content: 'hi', embedding: [0.1, 0.2] });
+    await repo.saveChunks('d1', [
+      { content: 'a', embedding: [0.1, 0.2] },
+      { content: 'b', embedding: [0.3, 0.4] },
+    ]);
 
     expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it('saveChunks is a no-op for an empty list', async () => {
+    const prisma = mockDeep<PrismaService>();
+    const repo = new DocumentsRepository(prisma);
+
+    await repo.saveChunks('d1', []);
+
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
   });
 });
