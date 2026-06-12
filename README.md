@@ -3,12 +3,11 @@
 > Upload your documents, ask questions, get **streamed answers with inline citations**.
 > A production-shaped Retrieval-Augmented Generation app — Next.js + NestJS + Groq.
 
-![status](https://img.shields.io/badge/status-in%20progress-yellow)
+![ci](https://github.com/iberezh/rag-doc-qa/actions/workflows/ci.yml/badge.svg)
 ![stack](https://img.shields.io/badge/stack-Next.js%20%7C%20NestJS%20%7C%20pgvector%20%7C%20Groq-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
-<!-- TODO: replace with a real demo GIF once the UI is built -->
-<!-- ![demo](docs/demo.gif) -->
+![demo — streamed answer with inline citations and sources](assets/demo.png)
 
 ## What it does
 
@@ -71,6 +70,7 @@ flowchart LR
 # 1. clone, then:
 cp .env.example .env          # add your free GROQ_API_KEY for real answers
 docker compose up             # starts postgres, api, web
+# POSTGRES_PORT=5433 docker compose up   # if 5432 is taken by a local Postgres
 
 # open http://localhost:3000
 ```
@@ -83,8 +83,10 @@ flow, but add a key for genuine generation. (Tests and CI run in this mock mode 
 
 ```bash
 pnpm install
-pnpm --filter api dev         # http://localhost:4000
-pnpm --filter web dev         # http://localhost:3000
+docker compose up -d postgres          # or any Postgres 16 with pgvector
+pnpm --filter api prisma:migrate
+pnpm --filter api dev                  # http://localhost:4000
+pnpm --filter web dev                  # http://localhost:3000
 ```
 
 ## Project layout

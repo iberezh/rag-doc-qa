@@ -1,6 +1,5 @@
-# Phase 0 skeleton: a real Postgres + pgvector service for local dev (used from Phase 1).
-# The api/web image builds are added in Phase 7 (see docs/SCOPE.md). For now run the apps
-# with `pnpm --filter api dev` and `pnpm --filter web dev` against this database.
+# Full stack: `docker compose up` builds and runs Postgres + the NestJS API + the Next.js web.
+# Set GROQ_API_KEY in .env for real answers (otherwise the API uses the mock LLM).
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -17,7 +16,36 @@ services:
       test: ['CMD-SHELL', 'pg_isready -U rag -d rag']
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      CORS_ORIGIN: http://localhost:3000
+      DATABASE_URL: postgresql://rag:rag@postgres:5432/rag
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000/api
+    environment:
+      NODE_ENV: production
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
 
 volumes:
   pgdata:
