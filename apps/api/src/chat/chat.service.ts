@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { isConfident } from '../retrieval/confidence';
 import { RetrievalService } from '../retrieval/retrieval.service';
 import { CHAT_MODEL, type ChatModel } from './chat-model';
 import { buildMessages } from './prompt';
-import { NO_CONTEXT_MESSAGE } from './chat.constants';
+import { LOW_CONFIDENCE_MESSAGE } from './chat.constants';
 import type { ChatEvent } from './chat.types';
 
 @Injectable()
@@ -16,8 +17,8 @@ export class ChatService {
     const { sources, context } = await this.retrieval.retrieve(botId, query);
     yield { type: 'sources', sources };
 
-    if (sources.length === 0) {
-      yield { type: 'token', text: NO_CONTEXT_MESSAGE };
+    if (!isConfident(sources)) {
+      yield { type: 'token', text: LOW_CONFIDENCE_MESSAGE };
       yield { type: 'done' };
       return;
     }

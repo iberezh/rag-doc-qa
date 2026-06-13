@@ -17,6 +17,21 @@ export async function getPublicBot(publicKey: string): Promise<PublicBotConfig> 
   return jsonOf<PublicBotConfig>(res);
 }
 
+export async function captureLead(
+  publicKey: string,
+  conversationId: string,
+  email: string,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/public/bots/${publicKey}/lead`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId, email }),
+  });
+  if (!res.ok) {
+    throw new Error(await errorMessage(res));
+  }
+}
+
 export async function* streamPublicChat(
   publicKey: string,
   query: string,

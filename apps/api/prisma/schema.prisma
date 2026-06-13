@@ -24,6 +24,11 @@ enum Plan {
   PRO
 }
 
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
 model Account {
   id        String     @id @default(uuid()) @db.Uuid
   name      String
@@ -45,12 +50,40 @@ model Bot {
   allowedDomains String[]   @default([]) @map("allowed_domains")
   greeting       String     @default("Hi! Ask me anything about our docs.")
   color          String     @default("#c0492c")
-  showBadge      Boolean    @default(true) @map("show_badge")
-  createdAt      DateTime   @default(now()) @map("created_at")
+  showBadge      Boolean        @default(true) @map("show_badge")
+  createdAt      DateTime       @default(now()) @map("created_at")
   documents      Document[]
+  conversations  Conversation[]
 
   @@index([accountId])
   @@map("bots")
+}
+
+model Conversation {
+  id           String    @id @default(uuid()) @db.Uuid
+  botId        String    @map("bot_id") @db.Uuid
+  bot          Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  visitorEmail String?   @map("visitor_email")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  messages     Message[]
+
+  @@index([botId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  content        String
+  citations      Json         @default("[]")
+  // Only meaningful for ASSISTANT messages; null on USER turns.
+  answered       Boolean?
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([conversationId])
+  @@map("messages")
 }
 
 model User {

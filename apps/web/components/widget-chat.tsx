@@ -1,8 +1,10 @@
 'use client';
 
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { getPublicBot, type PublicBotConfig, streamPublicChat } from '@/lib/public';
 import type { ChatEvent } from '@/lib/types';
+import { Bubble } from './widget-bubble';
+import { LeadForm } from './widget-lead-form';
 
 interface Message {
   id: string;
@@ -24,21 +26,18 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
   const [messages, setMessages] = useState<Message[]>([]);
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [needsEmail, setNeedsEmail] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Abort any in-flight stream when the widget unmounts.
   useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     let active = true;
     getPublicBot(publicKey)
-      .then((found) => {
-        if (active) setConfig(found);
-      })
-      .catch(() => {
-        if (active) setConfig(FALLBACK_CONFIG);
-      });
+      .then((found) => active && setConfig(found))
+      .catch(() => active && setConfig(FALLBACK_CONFIG));
     return () => {
       active = false;
     };
@@ -51,8 +50,10 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
   const append = (id: string, text: string) =>
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, text: m.text + text } : m)));
 
-  const consume = (id: string, event: ChatEvent) => {
+  const consume = (id: string, event: ChatEvent): void => {
+    if (event.type === 'conversation') setConversationId(event.conversationId);
     if (event.type === 'token') append(id, event.text);
+    if (event.type === 'done' && event.answered === false) setNeedsEmail(true);
   };
 
   const send = async (e: FormEvent): Promise<void> => {
@@ -69,22 +70,22 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
       { id: answerId, role: 'assistant', text: '' },
     ]);
     setValue('');
+    setNeedsEmail(false);
     setBusy(true);
     try {
       for await (const event of streamPublicChat(publicKey, query, host, controller.signal)) {
         consume(answerId, event);
       }
     } catch {
-      if (!controller.signal.aborted) {
-        append(answerId, '\n\n⚠️ Something went wrong. Please try again.');
-      }
+      if (!controller.signal.aborted) append(answerId, '\n\n⚠️ Something went wrong.');
     } finally {
       setBusy(false);
     }
   };
 
-  // Re-validate the server-provided color before using it as a CSS value (defense in depth).
   const accent = config && HEX_COLOR.test(config.color) ? config.color : FALLBACK_ACCENT;
+  const inputClass =
+    'w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40';
 
   return (
     <div className="flex h-screen flex-col bg-white text-[#1a1a1a]">
@@ -99,6 +100,9 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
             {m.text || '…'}
           </Bubble>
         ))}
+        {needsEmail && conversationId ? (
+          <LeadForm publicKey={publicKey} conversationId={conversationId} accent={accent} />
+        ) : null}
         <div ref={endRef} />
       </div>
 
@@ -108,7 +112,7 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
           onChange={(e) => setValue(e.target.value)}
           disabled={busy}
           placeholder="Ask a question…"
-          className="w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40"
+          className={inputClass}
         />
       </form>
 
@@ -122,28 +126,6 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
           Powered by Helpbase
         </a>
       ) : null}
-    </div>
-  );
-}
-
-function Bubble({
-  role,
-  accent,
-  children,
-}: {
-  role: 'user' | 'assistant';
-  accent?: string;
-  children: ReactNode;
-}) {
-  const mine = role === 'user';
-  return (
-    <div className={mine ? 'flex justify-end' : 'flex justify-start'}>
-      <span
-        className="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2"
-        style={mine ? { backgroundColor: accent, color: '#fff' } : { backgroundColor: '#f1efe9' }}
-      >
-        {children}
-      </span>
     </div>
   );
 }

@@ -9,7 +9,8 @@ export interface RetrievedChunk {
 export type ChatEvent =
   | { type: 'sources'; sources: RetrievedChunk[] }
   | { type: 'token'; text: string }
-  | { type: 'done' }
+  | { type: 'conversation'; conversationId: string }
+  | { type: 'done'; answered?: boolean }
   | { type: 'error'; message: string };
 
 export interface IngestSummary {
@@ -46,4 +47,19 @@ export interface Bot {
   color: string;
   showBadge: boolean;
   createdAt: string;
+}
+
+export interface ConversationView {
+  id: string;
+  question: string;
+  answer: string;
+  answered: boolean;
+  visitorEmail: string | null;
+  createdAt: string;
+}
+
+export interface BotAnalytics {
+  totals: { total: number; answered: number; unanswered: number; deflectionRate: number };
+  recent: ConversationView[];
+  unanswered: ConversationView[];
 }

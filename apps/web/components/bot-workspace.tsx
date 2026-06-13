@@ -8,14 +8,19 @@ import { useLibrary } from '@/hooks/use-library';
 import { getBot } from '@/lib/bots';
 import type { Bot } from '@/lib/types';
 import { AccountMenu } from './account-menu';
+import { AnalyticsPanel } from './analytics-panel';
+import { Button } from './ui/button';
 import { ChatPanel } from './chat-panel';
 import { EmbedPanel } from './embed-panel';
 import { LibraryPanel } from './library-panel';
+
+type View = 'chat' | 'analytics';
 
 export function BotWorkspace({ botId }: { botId: string }) {
   const library = useLibrary(botId);
   const chat = useChat(botId);
   const [bot, setBot] = useState<Bot | null>(null);
+  const [view, setView] = useState<View>('chat');
 
   useEffect(() => {
     let active = true;
@@ -43,17 +48,39 @@ export function BotWorkspace({ botId }: { botId: string }) {
           <span className="inline-block h-3 w-3 rotate-45 bg-primary" aria-hidden />
           <h1 className="font-display text-xl font-semibold tracking-tight">{bot?.name ?? 'Bot'}</h1>
         </div>
-        <AccountMenu />
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={view === 'chat' ? 'secondary' : 'ghost'}
+            aria-pressed={view === 'chat'}
+            onClick={() => setView('chat')}
+          >
+            Test chat
+          </Button>
+          <Button
+            size="sm"
+            variant={view === 'analytics' ? 'secondary' : 'ghost'}
+            aria-pressed={view === 'analytics'}
+            onClick={() => setView('analytics')}
+          >
+            Analytics
+          </Button>
+          <AccountMenu />
+        </div>
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(300px,380px)_1fr]">
         <LibraryPanel library={library} embed={bot ? <EmbedPanel bot={bot} /> : undefined} />
-        <ChatPanel
-          exchanges={chat.exchanges}
-          streaming={chat.streaming}
-          hasDocs={library.docs.length > 0}
-          onAsk={chat.ask}
-        />
+        {view === 'chat' ? (
+          <ChatPanel
+            exchanges={chat.exchanges}
+            streaming={chat.streaming}
+            hasDocs={library.docs.length > 0}
+            onAsk={chat.ask}
+          />
+        ) : (
+          <AnalyticsPanel botId={botId} />
+        )}
       </main>
     </div>
   );

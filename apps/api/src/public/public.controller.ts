@@ -17,6 +17,10 @@ import type { Request, Response } from 'express';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
 import { ChatSchema, type ChatInput } from '../chat/schemas/chat.schema';
+import { ConversationsService } from '../conversations/conversations.service';
+import { LeadSchema, type LeadInput } from '../conversations/schemas/lead.schema';
+import type { RetrievedChunk } from '../documents/documents.types';
+import { isConfident } from '../retrieval/confidence';
 import { ZodValidationPipe } from '../shared/pipes/zod-validation.pipe';
 import { hostAllowed } from './host';
 
@@ -27,12 +31,16 @@ interface PublicBotConfig {
   showBadge: boolean;
 }
 
+// A `type` (not interface) so it stays assignable to Prisma's InputJsonValue index signature.
+type CitationRecord = { filename: string; chunkIndex: number };
+
 const asString = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
-function sse(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n\n`;
-}
+const sse = (data: unknown): string => `data: ${JSON.stringify(data)}\n\n`;
+
+const slimCitations = (sources: RetrievedChunk[]): CitationRecord[] =>
+  sources.map((source) => ({ filename: source.filename, chunkIndex: source.chunkIndex }));
 
 // Unauthenticated, rate-limited endpoints the embeddable widget calls from customer sites.
 @Controller('public/bots/:publicKey')
@@ -41,6 +49,7 @@ export class PublicController {
   constructor(
     private readonly bots: BotsService,
     private readonly chat: ChatService,
+    private readonly conversations: ConversationsService,
   ) {}
 
   // Public display config (no secrets) — intentionally not origin-gated: the widget renders
@@ -69,17 +78,43 @@ export class PublicController {
       throw new ForbiddenException('This domain is not allowed to embed this bot');
     }
 
+    const { id: conversationId } = await this.conversations.start(bot.id, body.query);
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.write(sse({ type: 'conversation', conversationId }));
+
+    let answer = '';
+    let sources: RetrievedChunk[] = [];
     try {
       for await (const event of this.chat.streamAnswer(bot.id, body.query)) {
-        res.write(sse(event));
+        if (event.type === 'sources') sources = event.sources;
+        if (event.type === 'token') answer += event.text;
+        if (event.type !== 'done') res.write(sse(event));
       }
+      const answered = isConfident(sources);
+      await this.conversations.complete({ conversationId, answer, citations: slimCitations(sources), answered });
+      res.write(sse({ type: 'done', answered }));
     } catch {
       res.write(sse({ type: 'error', message: 'Generation failed' }));
     } finally {
       res.end();
     }
+  }
+
+  // No origin gate here: conversationId is an unguessable capability minted only by the
+  // origin-checked chat endpoint, and captureEmail is already scoped to {conversationId, botId}.
+  @Post('lead')
+  @HttpCode(HttpStatus.OK)
+  async lead(
+    @Param('publicKey') publicKey: string,
+    @Body(new ZodValidationPipe(LeadSchema)) body: LeadInput,
+  ): Promise<{ ok: true }> {
+    const bot = await this.bots.getByPublicKey(publicKey);
+    const captured = await this.conversations.captureEmail(bot.id, body.conversationId, body.email);
+    if (!captured) {
+      throw new NotFoundException('Conversation not found');
+    }
+    return { ok: true };
   }
 }
