@@ -24,8 +24,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'RAG Doc Q&A — ask your documents',
-  description: 'Upload documents, ask questions, get streamed answers with citations.',
+  title: 'Helpbase — a support chatbot from your docs',
+  description: 'Upload your docs and turn them into an embeddable, citation-grounded support chatbot.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

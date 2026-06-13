@@ -12,12 +12,16 @@ export class RetrievalService {
     private readonly repo: DocumentsRepository,
   ) {}
 
-  async retrieve(query: string, limit: number = DEFAULT_TOP_K): Promise<RetrievalResult> {
+  async retrieve(
+    accountId: string,
+    query: string,
+    limit: number = DEFAULT_TOP_K,
+  ): Promise<RetrievalResult> {
     const [embedding] = await this.embedder.embed([query]);
     if (embedding === undefined) {
       throw new Error('Failed to embed query');
     }
-    const sources = await this.repo.findSimilarChunks(embedding, limit);
+    const sources = await this.repo.findSimilarChunks(accountId, embedding, limit);
     return { sources, context: assembleContext(sources) };
   }
 }

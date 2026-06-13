@@ -29,3 +29,10 @@ export interface Exchange {
 }
 
 export type LibraryDoc = IngestSummary;
+
+export type Plan = 'FREE' | 'STARTER' | 'PRO';
+
+export interface Profile {
+  user: { id: string; email: string };
+  account: { id: string; name: string; plan: Plan };
+}

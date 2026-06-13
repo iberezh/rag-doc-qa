@@ -9,6 +9,7 @@ describe('DocumentsRepository', () => {
     const repo = new DocumentsRepository(prisma);
     const doc: Document = {
       id: 'd1',
+      accountId: 'a1',
       filename: 'a.txt',
       contentType: 'text/plain',
       status: DocumentStatus.PENDING,
@@ -16,7 +17,11 @@ describe('DocumentsRepository', () => {
     };
     prisma.document.create.mockResolvedValue(doc);
 
-    const result = await repo.createDocument({ filename: 'a.txt', contentType: 'text/plain' });
+    const result = await repo.createDocument({
+      accountId: 'a1',
+      filename: 'a.txt',
+      contentType: 'text/plain',
+    });
 
     expect(result).toEqual(doc);
   });

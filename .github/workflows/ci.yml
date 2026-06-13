@@ -26,6 +26,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://rag:rag@localhost:5432/rag
+      JWT_SECRET: ci-test-jwt-secret-not-a-real-secret
 
     steps:
       - uses: actions/checkout@v4

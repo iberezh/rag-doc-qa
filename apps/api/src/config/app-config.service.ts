@@ -22,6 +22,14 @@ export class AppConfigService {
     return this.config.get('DATABASE_URL', { infer: true });
   }
 
+  get jwtSecret(): string {
+    return this.config.get('JWT_SECRET', { infer: true });
+  }
+
+  get isProduction(): boolean {
+    return this.nodeEnv === 'production';
+  }
+
   get groqApiKey(): string | undefined {
     return this.config.get('GROQ_API_KEY', { infer: true });
   }

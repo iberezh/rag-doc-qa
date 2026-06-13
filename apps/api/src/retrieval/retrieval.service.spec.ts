@@ -13,9 +13,9 @@ describe('RetrievalService', () => {
     repo.findSimilarChunks.mockResolvedValue(sources);
     const service = new RetrievalService(new FakeEmbedder(), repo);
 
-    const result = await service.retrieve('a question', 5);
+    const result = await service.retrieve('acct-1', 'a question', 5);
 
-    expect(repo.findSimilarChunks).toHaveBeenCalledWith(expect.any(Array), 5);
+    expect(repo.findSimilarChunks).toHaveBeenCalledWith('acct-1', expect.any(Array), 5);
     expect(result.sources).toEqual(sources);
     expect(result.context).toContain('[1] (a.txt) relevant');
   });

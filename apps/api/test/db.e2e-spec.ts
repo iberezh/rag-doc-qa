@@ -13,20 +13,23 @@ interface NearestRow {
 describe('Documents persistence (e2e)', () => {
   let prisma: PrismaService;
   let repo: DocumentsRepository;
+  let accountId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     prisma = moduleRef.get(PrismaService);
     repo = moduleRef.get(DocumentsRepository);
     await prisma.$connect();
+    accountId = (await prisma.account.create({ data: { name: 'db-e2e' } })).id;
   });
 
   afterAll(async () => {
+    await prisma.account.deleteMany({ where: { id: accountId } });
     await prisma.$disconnect();
   });
 
   it('stores a 384-dim chunk embedding and finds it by cosine distance', async () => {
-    const doc = await repo.createDocument({ filename: 'sample.txt', contentType: 'text/plain' });
+    const doc = await repo.createDocument({ accountId, filename: 'sample.txt', contentType: 'text/plain' });
     const embedding = Array.from({ length: EMBEDDING_DIM }, (_, i) => (i === 0 ? 1 : 0));
     await repo.saveChunks(doc.id, [{ content: 'hello world', embedding }]);
 

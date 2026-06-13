@@ -1,9 +1,11 @@
 import type { ChatEvent, IngestSummary } from './types';
 import { parseSse } from './sse';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+// Same-origin by default: requests hit /api/* on the web origin and Next proxies them to the
+// API (see next.config.mjs), keeping the httpOnly auth cookie first-party.
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
-async function errorMessage(res: Response): Promise<string> {
+export async function errorMessage(res: Response): Promise<string> {
   const fallback = `Request failed (${res.status})`;
   try {
     const data = (await res.json()) as { message?: string | string[] };
@@ -19,6 +21,7 @@ export async function ingestText(text: string, filename?: string): Promise<Inges
   const res = await fetch(`${API_BASE}/documents/text`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -30,7 +33,11 @@ export async function ingestText(text: string, filename?: string): Promise<Inges
 export async function ingestFile(file: File): Promise<IngestSummary> {
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${API_BASE}/documents`, { method: 'POST', body: form });
+  const res = await fetch(`${API_BASE}/documents`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
   if (!res.ok) {
     throw new Error(await errorMessage(res));
   }
@@ -41,6 +48,7 @@ export async function* streamChat(query: string): AsyncGenerator<ChatEvent> {
   const res = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ query }),
   });
   if (!res.ok || !res.body) {

@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { EmbeddedChunk, RetrievedChunk } from './documents.types';
 
 export interface NewDocument {
+  accountId: string;
   filename: string;
   contentType: string;
 }
@@ -17,7 +18,9 @@ export class DocumentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   createDocument(input: NewDocument): Promise<Document> {
-    return this.prisma.document.create({ data: input });
+    return this.prisma.document.create({
+      data: { accountId: input.accountId, filename: input.filename, contentType: input.contentType },
+    });
   }
 
   /** Single batched insert. pgvector is an Unsupported Prisma type, so this uses raw SQL. */
@@ -39,8 +42,15 @@ export class DocumentsRepository {
     await this.prisma.document.update({ where: { id }, data: { status } });
   }
 
-  /** Cosine top-k over the pgvector column; score = 1 - distance (higher is closer). */
-  findSimilarChunks(embedding: number[], limit: number): Promise<RetrievedChunk[]> {
+  /**
+   * Cosine top-k over the pgvector column, scoped to one account (the tenant boundary).
+   * score = 1 - distance (higher is closer).
+   */
+  findSimilarChunks(
+    accountId: string,
+    embedding: number[],
+    limit: number,
+  ): Promise<RetrievedChunk[]> {
     const vector = toVector(embedding);
     return this.prisma.$queryRaw<RetrievedChunk[]>`
       SELECT c.document_id AS "documentId",
@@ -50,7 +60,7 @@ export class DocumentsRepository {
              1 - (c.embedding <=> ${vector}::vector) AS "score"
       FROM chunks c
       JOIN documents d ON d.id = c.document_id
-      WHERE c.embedding IS NOT NULL
+      WHERE d.account_id = ${accountId}::uuid AND c.embedding IS NOT NULL
       ORDER BY c.embedding <=> ${vector}::vector
       LIMIT ${limit}
     `;

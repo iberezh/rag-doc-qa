@@ -1,17 +1,19 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { DocumentsRepository } from '../src/documents/documents.repository';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { EMBEDDER } from '../src/embeddings/embedder';
 import { FakeEmbedder } from '../src/embeddings/fake.embedder';
 import { CHAT_MODEL } from '../src/chat/chat-model';
 import { MockChatModel } from '../src/chat/mock-chat.model';
+import { signup, type Session } from './e2e-utils';
 
 describe('Chat (e2e)', () => {
   let app: INestApplication;
-  let repo: DocumentsRepository;
-  let docId: string;
+  let prisma: PrismaService;
+  let session: Session;
 
   beforeAll(async () => {
     // Force deterministic, offline implementations regardless of env.
@@ -22,24 +24,27 @@ describe('Chat (e2e)', () => {
       .useClass(MockChatModel)
       .compile();
     app = moduleRef.createNestApplication();
+    app.use(cookieParser());
     app.setGlobalPrefix('api');
     await app.init();
-    repo = moduleRef.get(DocumentsRepository);
+    prisma = moduleRef.get(PrismaService);
+    session = await signup(app, 'chat');
 
-    const res = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/api/documents/text')
+      .set('Cookie', session.cookie)
       .send({ text: 'the mitochondria is the powerhouse of the cell', filename: 'bio.txt' });
-    docId = res.body.id;
   });
 
   afterAll(async () => {
-    await repo.deleteDocument(docId);
+    await prisma.account.deleteMany({ where: { id: session.accountId } });
     await app.close();
   });
 
   it('streams an SSE answer with sources, tokens, and done', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/chat')
+      .set('Cookie', session.cookie)
       .send({ query: 'what is the powerhouse of the cell?' })
       .buffer(true);
 
