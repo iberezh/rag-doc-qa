@@ -22,7 +22,7 @@ describe('ChatService', () => {
     retrieval.retrieve.mockResolvedValue({ sources, context: '[1] (a.txt) x' });
     const service = new ChatService(retrieval, new MockChatModel());
 
-    const events = await collect(service.streamAnswer('acct-1', 'q'));
+    const events = await collect(service.streamAnswer('bot-1', 'q'));
 
     expect(events[0]).toEqual({ type: 'sources', sources });
     expect(events.some((event) => event.type === 'token')).toBe(true);
@@ -34,7 +34,7 @@ describe('ChatService', () => {
     retrieval.retrieve.mockResolvedValue({ sources: [], context: '' });
     const service = new ChatService(retrieval, new MockChatModel());
 
-    const events = await collect(service.streamAnswer('acct-1', 'q'));
+    const events = await collect(service.streamAnswer('bot-1', 'q'));
 
     expect(events[0]).toEqual({ type: 'sources', sources: [] });
     expect(events.some((event) => event.type === 'token')).toBe(true);

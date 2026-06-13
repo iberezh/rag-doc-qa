@@ -4,6 +4,9 @@ export interface IngestSummary {
   chunks: number;
 }
 
+/** A stored document as listed in a bot's library. */
+export type DocumentSummary = IngestSummary;
+
 export interface EmbeddedChunk {
   content: string;
   embedding: number[];

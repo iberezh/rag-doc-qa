@@ -1,33 +1,49 @@
 import {
-  Body,
   Controller,
+  Delete,
   FileTypeValidator,
+  Get,
+  HttpCode,
+  HttpStatus,
   MaxFileSizeValidator,
+  NotFoundException,
+  Param,
   ParseFilePipe,
   Post,
+  Body,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CurrentAccount } from '../auth/current-account.decorator';
+import type { Bot } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import type { AuthContext } from '../auth/auth.types';
-import { IngestionService } from './ingestion.service';
+import { BotOwnerGuard } from '../bots/guards/bot-owner.guard';
+import { CurrentBot } from '../bots/current-bot.decorator';
 import { ZodValidationPipe } from '../shared/pipes/zod-validation.pipe';
-import { IngestTextSchema, type IngestTextInput } from './schemas/ingest-text.schema';
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from './documents.constants';
-import type { IngestSummary } from './documents.types';
+import { DocumentsRepository } from './documents.repository';
+import type { DocumentSummary, IngestSummary } from './documents.types';
+import { IngestionService } from './ingestion.service';
+import { IngestTextSchema, type IngestTextInput } from './schemas/ingest-text.schema';
 
-@Controller('documents')
-@UseGuards(JwtAuthGuard)
+@Controller('bots/:botId/documents')
+@UseGuards(JwtAuthGuard, BotOwnerGuard)
 export class DocumentsController {
-  constructor(private readonly ingestion: IngestionService) {}
+  constructor(
+    private readonly ingestion: IngestionService,
+    private readonly repo: DocumentsRepository,
+  ) {}
+
+  @Get()
+  list(@CurrentBot() bot: Bot): Promise<DocumentSummary[]> {
+    return this.repo.listByBot(bot.id);
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   ingestFile(
-    @CurrentAccount() { accountId }: AuthContext,
+    @CurrentBot() bot: Bot,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -39,14 +55,23 @@ export class DocumentsController {
     )
     file: Express.Multer.File,
   ): Promise<IngestSummary> {
-    return this.ingestion.ingestFile(accountId, file);
+    return this.ingestion.ingestFile({ accountId: bot.accountId, botId: bot.id }, file);
   }
 
   @Post('text')
   ingestText(
-    @CurrentAccount() { accountId }: AuthContext,
+    @CurrentBot() bot: Bot,
     @Body(new ZodValidationPipe(IngestTextSchema)) body: IngestTextInput,
   ): Promise<IngestSummary> {
-    return this.ingestion.ingestText(accountId, body);
+    return this.ingestion.ingestText({ accountId: bot.accountId, botId: bot.id }, body);
+  }
+
+  @Delete(':docId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@CurrentBot() bot: Bot, @Param('docId') docId: string): Promise<void> {
+    const deleted = await this.repo.deleteForBot(bot.id, docId);
+    if (!deleted) {
+      throw new NotFoundException('Document not found');
+    }
   }
 }

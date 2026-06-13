@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentStatus, Prisma, type Document } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import type { EmbeddedChunk, RetrievedChunk } from './documents.types';
+import type { DocumentSummary, EmbeddedChunk, RetrievedChunk } from './documents.types';
 
 export interface NewDocument {
   accountId: string;
+  botId: string;
   filename: string;
   contentType: string;
 }
@@ -19,8 +20,28 @@ export class DocumentsRepository {
 
   createDocument(input: NewDocument): Promise<Document> {
     return this.prisma.document.create({
-      data: { accountId: input.accountId, filename: input.filename, contentType: input.contentType },
+      data: {
+        accountId: input.accountId,
+        botId: input.botId,
+        filename: input.filename,
+        contentType: input.contentType,
+      },
     });
+  }
+
+  async listByBot(botId: string): Promise<DocumentSummary[]> {
+    const rows = await this.prisma.document.findMany({
+      where: { botId },
+      select: { id: true, filename: true, _count: { select: { chunks: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((row) => ({ id: row.id, filename: row.filename, chunks: row._count.chunks }));
+  }
+
+  /** Deletes a document only if it belongs to the given bot; returns false if nothing matched. */
+  async deleteForBot(botId: string, id: string): Promise<boolean> {
+    const { count } = await this.prisma.document.deleteMany({ where: { id, botId } });
+    return count > 0;
   }
 
   /** Single batched insert. pgvector is an Unsupported Prisma type, so this uses raw SQL. */
@@ -43,15 +64,12 @@ export class DocumentsRepository {
   }
 
   /**
-   * Cosine top-k over the pgvector column, scoped to one account (the tenant boundary).
+   * Cosine top-k over the pgvector column, scoped to one bot (the tenant boundary).
    * score = 1 - distance (higher is closer).
    */
-  findSimilarChunks(
-    accountId: string,
-    embedding: number[],
-    limit: number,
-  ): Promise<RetrievedChunk[]> {
+  findSimilarChunks(botId: string, embedding: number[], limit: number): Promise<RetrievedChunk[]> {
     const vector = toVector(embedding);
+    // $queryRaw binds ${...} as parameters (not string-inlined); botId/limit are also validated upstream.
     return this.prisma.$queryRaw<RetrievedChunk[]>`
       SELECT c.document_id AS "documentId",
              d.filename AS "filename",
@@ -60,7 +78,7 @@ export class DocumentsRepository {
              1 - (c.embedding <=> ${vector}::vector) AS "score"
       FROM chunks c
       JOIN documents d ON d.id = c.document_id
-      WHERE d.account_id = ${accountId}::uuid AND c.embedding IS NOT NULL
+      WHERE d.bot_id = ${botId}::uuid AND c.embedding IS NOT NULL
       ORDER BY c.embedding <=> ${vector}::vector
       LIMIT ${limit}
     `;

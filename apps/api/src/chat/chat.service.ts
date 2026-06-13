@@ -12,8 +12,8 @@ export class ChatService {
     @Inject(CHAT_MODEL) private readonly model: ChatModel,
   ) {}
 
-  async *streamAnswer(accountId: string, query: string): AsyncGenerator<ChatEvent> {
-    const { sources, context } = await this.retrieval.retrieve(accountId, query);
+  async *streamAnswer(botId: string, query: string): AsyncGenerator<ChatEvent> {
+    const { sources, context } = await this.retrieval.retrieve(botId, query);
     yield { type: 'sources', sources };
 
     if (sources.length === 0) {

@@ -13,7 +13,7 @@ export class RetrievalService {
   ) {}
 
   async retrieve(
-    accountId: string,
+    botId: string,
     query: string,
     limit: number = DEFAULT_TOP_K,
   ): Promise<RetrievalResult> {
@@ -21,7 +21,7 @@ export class RetrievalService {
     if (embedding === undefined) {
       throw new Error('Failed to embed query');
     }
-    const sources = await this.repo.findSimilarChunks(accountId, embedding, limit);
+    const sources = await this.repo.findSimilarChunks(botId, embedding, limit);
     return { sources, context: assembleContext(sources) };
   }
 }

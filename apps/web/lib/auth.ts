@@ -1,4 +1,4 @@
-import { API_BASE, errorMessage } from './api';
+import { API_BASE, errorMessage, jsonOf } from './api';
 import type { Profile } from './types';
 
 export interface SignupInput {
@@ -25,7 +25,7 @@ async function profileOrThrow(res: Response): Promise<Profile> {
   if (!res.ok) {
     throw new Error(await errorMessage(res));
   }
-  return res.json() as Promise<Profile>;
+  return jsonOf<Profile>(res);
 }
 
 export const signup = (input: SignupInput): Promise<Profile> =>
@@ -40,5 +40,5 @@ export const logout = async (): Promise<void> => {
 
 export async function me(): Promise<Profile | null> {
   const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
-  return res.ok ? (res.json() as Promise<Profile>) : null;
+  return res.ok ? jsonOf<Profile>(res) : null;
 }

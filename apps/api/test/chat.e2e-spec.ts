@@ -8,12 +8,13 @@ import { EMBEDDER } from '../src/embeddings/embedder';
 import { FakeEmbedder } from '../src/embeddings/fake.embedder';
 import { CHAT_MODEL } from '../src/chat/chat-model';
 import { MockChatModel } from '../src/chat/mock-chat.model';
-import { signup, type Session } from './e2e-utils';
+import { createBot, signup, type Session } from './e2e-utils';
 
 describe('Chat (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let session: Session;
+  let botId: string;
 
   beforeAll(async () => {
     // Force deterministic, offline implementations regardless of env.
@@ -29,9 +30,10 @@ describe('Chat (e2e)', () => {
     await app.init();
     prisma = moduleRef.get(PrismaService);
     session = await signup(app, 'chat');
+    botId = await createBot(app, session.cookie, 'Chat bot');
 
     await request(app.getHttpServer())
-      .post('/api/documents/text')
+      .post(`/api/bots/${botId}/documents/text`)
       .set('Cookie', session.cookie)
       .send({ text: 'the mitochondria is the powerhouse of the cell', filename: 'bio.txt' });
   });
@@ -43,7 +45,7 @@ describe('Chat (e2e)', () => {
 
   it('streams an SSE answer with sources, tokens, and done', async () => {
     const res = await request(app.getHttpServer())
-      .post('/api/chat')
+      .post(`/api/bots/${botId}/chat`)
       .set('Cookie', session.cookie)
       .send({ query: 'what is the powerhouse of the cell?' })
       .buffer(true);

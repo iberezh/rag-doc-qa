@@ -18,9 +18,9 @@ export function LibraryPanel({ library }: { library: LibraryState }) {
       </div>
       <div>
         <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-          02 — Library · {library.docs.length}
+          02 — Knowledge · {library.docs.length}
         </p>
-        <DocumentList docs={library.docs} />
+        <DocumentList docs={library.docs} onDelete={(id) => void library.remove(id)} />
       </div>
     </aside>
   );

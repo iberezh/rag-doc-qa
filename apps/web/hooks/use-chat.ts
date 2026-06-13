@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { streamChat } from '@/lib/api';
 import type { ChatEvent, Exchange } from '@/lib/types';
 
@@ -8,9 +8,13 @@ export interface ChatState {
   ask: (question: string) => Promise<void>;
 }
 
-export function useChat(): ChatState {
+export function useChat(botId: string): ChatState {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [streaming, setStreaming] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight stream when the workspace unmounts (e.g. navigating away).
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const patch = useCallback((id: string, change: Partial<Exchange>) => {
     setExchanges((prev) => prev.map((x) => (x.id === id ? { ...x, ...change } : x)));
@@ -38,6 +42,9 @@ export function useChat(): ChatState {
 
   const ask = useCallback(
     async (question: string) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
       const id = crypto.randomUUID();
       setExchanges((prev) => [
         ...prev,
@@ -45,17 +52,19 @@ export function useChat(): ChatState {
       ]);
       setStreaming(true);
       try {
-        for await (const event of streamChat(question)) {
+        for await (const event of streamChat(botId, question, controller.signal)) {
           handle(id, event);
         }
         patch(id, { status: 'done' });
       } catch {
-        patch(id, { status: 'error' });
+        if (!controller.signal.aborted) {
+          patch(id, { status: 'error' });
+        }
       } finally {
         setStreaming(false);
       }
     },
-    [handle, patch],
+    [handle, patch, botId],
   );
 
   return { exchanges, streaming, ask };

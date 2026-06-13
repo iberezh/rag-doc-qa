@@ -10,6 +10,7 @@ describe('DocumentsRepository', () => {
     const doc: Document = {
       id: 'd1',
       accountId: 'a1',
+      botId: 'b1',
       filename: 'a.txt',
       contentType: 'text/plain',
       status: DocumentStatus.PENDING,
@@ -19,6 +20,7 @@ describe('DocumentsRepository', () => {
 
     const result = await repo.createDocument({
       accountId: 'a1',
+      botId: 'b1',
       filename: 'a.txt',
       contentType: 'text/plain',
     });

@@ -1,5 +1,5 @@
-import { Workspace } from '@/components/workspace';
+import { BotsDashboard } from '@/components/bots-dashboard';
 
 export default function HomePage() {
-  return <Workspace />;
+  return <BotsDashboard />;
 }

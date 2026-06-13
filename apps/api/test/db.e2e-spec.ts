@@ -14,6 +14,7 @@ describe('Documents persistence (e2e)', () => {
   let prisma: PrismaService;
   let repo: DocumentsRepository;
   let accountId: string;
+  let botId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -21,6 +22,11 @@ describe('Documents persistence (e2e)', () => {
     repo = moduleRef.get(DocumentsRepository);
     await prisma.$connect();
     accountId = (await prisma.account.create({ data: { name: 'db-e2e' } })).id;
+    botId = (
+      await prisma.bot.create({
+        data: { accountId, name: 'db-e2e bot', publicKey: `pub_db_${Date.now()}` },
+      })
+    ).id;
   });
 
   afterAll(async () => {
@@ -29,7 +35,12 @@ describe('Documents persistence (e2e)', () => {
   });
 
   it('stores a 384-dim chunk embedding and finds it by cosine distance', async () => {
-    const doc = await repo.createDocument({ accountId, filename: 'sample.txt', contentType: 'text/plain' });
+    const doc = await repo.createDocument({
+      accountId,
+      botId,
+      filename: 'sample.txt',
+      contentType: 'text/plain',
+    });
     const embedding = Array.from({ length: EMBEDDING_DIM }, (_, i) => (i === 0 ? 1 : 0));
     await repo.saveChunks(doc.id, [{ content: 'hello world', embedding }]);
 

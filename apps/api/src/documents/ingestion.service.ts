@@ -14,8 +14,12 @@ interface UploadedFile {
   buffer: Buffer;
 }
 
-interface PersistInput {
+export interface DocumentOwner {
   accountId: string;
+  botId: string;
+}
+
+interface PersistInput extends DocumentOwner {
   filename: string;
   contentType: string;
   text: string;
@@ -39,14 +43,14 @@ export class IngestionService {
     @Inject(EMBEDDER) private readonly embedder: Embedder,
   ) {}
 
-  async ingestFile(accountId: string, file: UploadedFile): Promise<IngestSummary> {
+  async ingestFile(owner: DocumentOwner, file: UploadedFile): Promise<IngestSummary> {
     const text = await this.extractor.extract(file.buffer, file.mimetype);
-    return this.persist({ accountId, filename: file.originalname, contentType: file.mimetype, text });
+    return this.persist({ ...owner, filename: file.originalname, contentType: file.mimetype, text });
   }
 
-  ingestText(accountId: string, input: IngestTextInput): Promise<IngestSummary> {
+  ingestText(owner: DocumentOwner, input: IngestTextInput): Promise<IngestSummary> {
     const filename = input.filename ?? DEFAULT_TEXT_FILENAME;
-    return this.persist({ accountId, filename, contentType: TEXT_PLAIN, text: input.text });
+    return this.persist({ ...owner, filename, contentType: TEXT_PLAIN, text: input.text });
   }
 
   private async persist(input: PersistInput): Promise<IngestSummary> {
@@ -56,6 +60,7 @@ export class IngestionService {
     }
     const doc = await this.repo.createDocument({
       accountId: input.accountId,
+      botId: input.botId,
       filename: input.filename,
       contentType: input.contentType,
     });

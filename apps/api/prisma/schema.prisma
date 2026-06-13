@@ -30,9 +30,27 @@ model Account {
   plan      Plan       @default(FREE)
   createdAt DateTime   @default(now()) @map("created_at")
   users     User[]
+  bots      Bot[]
   documents Document[]
 
   @@map("accounts")
+}
+
+model Bot {
+  id             String     @id @default(uuid()) @db.Uuid
+  accountId      String     @map("account_id") @db.Uuid
+  account        Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name           String
+  publicKey      String     @unique @map("public_key")
+  allowedDomains String[]   @default([]) @map("allowed_domains")
+  greeting       String     @default("Hi! Ask me anything about our docs.")
+  color          String     @default("#c0492c")
+  showBadge      Boolean    @default(true) @map("show_badge")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  documents      Document[]
+
+  @@index([accountId])
+  @@map("bots")
 }
 
 model User {
@@ -51,6 +69,8 @@ model Document {
   id          String         @id @default(uuid()) @db.Uuid
   accountId   String         @map("account_id") @db.Uuid
   account     Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  botId       String         @map("bot_id") @db.Uuid
+  bot         Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
   filename    String
   contentType String         @map("content_type")
   status      DocumentStatus @default(PENDING)
@@ -58,6 +78,7 @@ model Document {
   chunks      Chunk[]
 
   @@index([accountId])
+  @@index([botId])
   @@map("documents")
 }
 

@@ -14,6 +14,7 @@ function setup() {
   const doc: Document = {
     id: 'd1',
     accountId: 'a1',
+    botId: 'b1',
     filename: 'a.txt',
     contentType: 'text/plain',
     status: DocumentStatus.PENDING,
@@ -27,9 +28,14 @@ describe('IngestionService', () => {
   it('ingests pasted text: creates a document, saves chunks, marks ready', async () => {
     const { repo, service } = setup();
 
-    const result = await service.ingestText('a1', { text: 'some content to chunk' });
+    const result = await service.ingestText(
+      { accountId: 'a1', botId: 'b1' },
+      { text: 'some content to chunk' },
+    );
 
-    expect(repo.createDocument).toHaveBeenCalledWith(expect.objectContaining({ accountId: 'a1' }));
+    expect(repo.createDocument).toHaveBeenCalledWith(
+      expect.objectContaining({ accountId: 'a1', botId: 'b1' }),
+    );
     expect(repo.setStatus).toHaveBeenCalledWith('d1', DocumentStatus.READY);
     expect(result.chunks).toBeGreaterThan(0);
 
@@ -41,15 +47,19 @@ describe('IngestionService', () => {
     const { repo, extractor, service } = setup();
     extractor.extract.mockResolvedValue('extracted file text');
 
-    await service.ingestFile('a1', {
-      originalname: 'f.pdf',
-      mimetype: 'application/pdf',
-      buffer: Buffer.from('x'),
-    });
+    await service.ingestFile(
+      { accountId: 'a1', botId: 'b1' },
+      {
+        originalname: 'f.pdf',
+        mimetype: 'application/pdf',
+        buffer: Buffer.from('x'),
+      },
+    );
 
     expect(extractor.extract).toHaveBeenCalledWith(expect.any(Buffer), 'application/pdf');
     expect(repo.createDocument).toHaveBeenCalledWith({
       accountId: 'a1',
+      botId: 'b1',
       filename: 'f.pdf',
       contentType: 'application/pdf',
     });
@@ -57,8 +67,8 @@ describe('IngestionService', () => {
 
   it('rejects documents with no extractable text', async () => {
     const { service } = setup();
-    await expect(service.ingestText('a1', { text: '   ' })).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(
+      service.ingestText({ accountId: 'a1', botId: 'b1' }, { text: '   ' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

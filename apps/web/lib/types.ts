@@ -36,3 +36,14 @@ export interface Profile {
   user: { id: string; email: string };
   account: { id: string; name: string; plan: Plan };
 }
+
+export interface Bot {
+  id: string;
+  name: string;
+  publicKey: string;
+  allowedDomains: string[];
+  greeting: string;
+  color: string;
+  showBadge: boolean;
+  createdAt: string;
+}
