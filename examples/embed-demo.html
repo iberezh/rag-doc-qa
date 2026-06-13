@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme Inc. — Help Center (Helpbase widget demo)</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 640px;
+        margin: 80px auto;
+        padding: 0 20px;
+        color: #222;
+      }
+      h1 { font-size: 30px; margin-bottom: 8px; }
+      p { line-height: 1.6; color: #555; }
+      code { background: #f1efe9; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Acme Inc. — Help Center</h1>
+    <p>
+      This is a plain HTML page with no application code of its own. The Helpbase chat widget is
+      added with a single <code>&lt;script&gt;</code> tag — click the bubble in the bottom-right.
+    </p>
+    <p>Open this page with <code>?bot=YOUR_PUBLIC_KEY</code> (optionally <code>&amp;app=http://localhost:3000</code>).</p>
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        var key = params.get('bot');
+        // Use only a validated http(s) ORIGIN (never an arbitrary URL/path) for the script src.
+        function safeOrigin(value) {
+          try {
+            var u = new URL(value);
+            if (u.protocol === 'http:' || u.protocol === 'https:') return u.origin;
+          } catch (e) {}
+          return 'http://localhost:3000';
+        }
+        var app = safeOrigin(params.get('app') || 'http://localhost:3000');
+        if (!key) {
+          document.body.insertAdjacentHTML(
+            'beforeend',
+            '<p style="color:#c0492c">Add <code>?bot=YOUR_PUBLIC_KEY</code> to the URL to load the widget.</p>',
+          );
+          return;
+        }
+        var s = document.createElement('script');
+        s.src = app + '/widget.js';
+        s.setAttribute('data-bot', key);
+        s.defer = true;
+        document.body.appendChild(s);
+      })();
+    </script>
+  </body>
+</html>

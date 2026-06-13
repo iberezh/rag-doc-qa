@@ -6,20 +6,22 @@ import { useEffect, useState } from 'react';
 import { useChat } from '@/hooks/use-chat';
 import { useLibrary } from '@/hooks/use-library';
 import { getBot } from '@/lib/bots';
+import type { Bot } from '@/lib/types';
 import { AccountMenu } from './account-menu';
 import { ChatPanel } from './chat-panel';
+import { EmbedPanel } from './embed-panel';
 import { LibraryPanel } from './library-panel';
 
 export function BotWorkspace({ botId }: { botId: string }) {
   const library = useLibrary(botId);
   const chat = useChat(botId);
-  const [name, setName] = useState('Bot');
+  const [bot, setBot] = useState<Bot | null>(null);
 
   useEffect(() => {
     let active = true;
     getBot(botId)
-      .then((bot) => {
-        if (active) setName(bot.name);
+      .then((found) => {
+        if (active) setBot(found);
       })
       .catch(() => {});
     return () => {
@@ -39,13 +41,13 @@ export function BotWorkspace({ botId }: { botId: string }) {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <span className="inline-block h-3 w-3 rotate-45 bg-primary" aria-hidden />
-          <h1 className="font-display text-xl font-semibold tracking-tight">{name}</h1>
+          <h1 className="font-display text-xl font-semibold tracking-tight">{bot?.name ?? 'Bot'}</h1>
         </div>
         <AccountMenu />
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(300px,380px)_1fr]">
-        <LibraryPanel library={library} />
+        <LibraryPanel library={library} embed={bot ? <EmbedPanel bot={bot} /> : undefined} />
         <ChatPanel
           exchanges={chat.exchanges}
           streaming={chat.streaming}

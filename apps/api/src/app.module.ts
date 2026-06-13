@@ -7,6 +7,7 @@ import { EmbeddingsModule } from './embeddings/embeddings.module';
 import { DocumentsModule } from './documents/documents.module';
 import { RetrievalModule } from './retrieval/retrieval.module';
 import { ChatModule } from './chat/chat.module';
+import { PublicModule } from './public/public.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { HealthModule } from './health/health.module';
     DocumentsModule,
     RetrievalModule,
     ChatModule,
+    PublicModule,
     HealthModule,
   ],
 })

@@ -20,5 +20,6 @@ function createChatModel(config: AppConfigService): ChatModel {
     ChatService,
     { provide: CHAT_MODEL, useFactory: createChatModel, inject: [AppConfigService] },
   ],
+  exports: [ChatService],
 })
 export class ChatModule {}

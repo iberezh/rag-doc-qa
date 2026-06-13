@@ -1,0 +1,2 @@
+export const PUBLIC_THROTTLE_TTL_MS = 60_000;
+export const PUBLIC_THROTTLE_LIMIT = 30;

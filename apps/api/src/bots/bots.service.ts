@@ -26,6 +26,15 @@ export class BotsService {
     return bot;
   }
 
+  /** Resolves a bot by its public (embed) key — no account required. */
+  async getByPublicKey(publicKey: string): Promise<Bot> {
+    const bot = await this.repo.findByPublicKey(publicKey);
+    if (!bot) {
+      throw new NotFoundException('Bot not found');
+    }
+    return bot;
+  }
+
   async update(accountId: string, botId: string, input: UpdateBotInput): Promise<Bot> {
     await this.getOwned(accountId, botId);
     return this.repo.update(botId, input);

@@ -6,6 +6,7 @@ function parseBlock(block: string): ChatEvent | null {
     return null;
   }
   const json = line.slice('data:'.length).trim();
+  // JSON.parse returns unknown; the server emits ChatEvent-shaped frames per the shared contract.
   return json ? (JSON.parse(json) as ChatEvent) : null;
 }
 
