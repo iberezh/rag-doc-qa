@@ -46,7 +46,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
       await (mode === 'signup'
         ? signup({ accountName, email, password })
         : login({ email, password }));
-      router.push('/');
+      router.push('/app');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');

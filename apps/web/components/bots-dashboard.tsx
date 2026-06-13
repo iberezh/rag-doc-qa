@@ -82,7 +82,7 @@ export function BotsDashboard() {
           <ul className="mt-8 grid gap-3 sm:grid-cols-2">
             {bots.map((bot) => (
               <li key={bot.id}>
-                <Link href={`/bots/${bot.id}`}>
+                <Link href={`/app/bots/${bot.id}`}>
                   <Card className="transition-colors hover:border-primary">
                     <CardContent className="flex items-center gap-3 p-4">
                       <span className="inline-block h-2.5 w-2.5 rotate-45 bg-primary" aria-hidden />

@@ -39,7 +39,7 @@ export function BotWorkspace({ botId }: { botId: string }) {
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-6 py-4">
         <div className="flex items-center gap-3">
           <Link
-            href="/"
+            href="/app"
             aria-label="Back to bots"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
