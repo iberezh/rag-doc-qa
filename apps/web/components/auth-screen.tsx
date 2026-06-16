@@ -6,6 +6,7 @@ import { type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Logo } from '@/components/landing/logo';
 import { login, signup } from '@/lib/auth';
 
 type Mode = 'login' | 'signup';
@@ -57,15 +58,15 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   return (
     <main className="relative z-[2] flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-baseline gap-3">
-          <span className="inline-block h-3 w-3 rotate-45 bg-primary" aria-hidden />
+        <div className="mb-6 flex animate-in fade-in slide-in-from-top-4 items-center gap-1.5 duration-500">
+          <Logo className="h-7 w-auto" />
           <span className="font-display text-2xl font-semibold tracking-tight">Helpbase</span>
         </div>
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <CardContent className="pt-5">
             <h1 className="mb-1 font-display text-xl font-semibold">{copy.title}</h1>
             <p className="mb-5 text-sm text-muted-foreground">
-              Turn your docs into a support chatbot.
+              {mode === "signup" ? "Cut support response time from hours to seconds." : "Welcome back to your workspace."}
             </p>
             <form className="flex flex-col gap-3" onSubmit={(e) => void submit(e)}>
               {mode === 'signup' ? (
@@ -107,7 +108,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
             </form>
           </CardContent>
         </Card>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="animate-in fade-in slide-in-from-bottom-4 mt-4 text-center text-sm text-muted-foreground duration-1000">
           {copy.prompt}{' '}
           <Link href={copy.href} className="text-primary underline-offset-4 hover:underline">
             {copy.link}

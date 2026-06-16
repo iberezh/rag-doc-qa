@@ -73,7 +73,7 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
     setNeedsEmail(false);
     setBusy(true);
     try {
-      for await (const event of streamPublicChat(publicKey, query, host, controller.signal)) {
+      for await (const event of streamPublicChat({ publicKey, query, host, signal: controller.signal })) {
         consume(answerId, event);
       }
     } catch {

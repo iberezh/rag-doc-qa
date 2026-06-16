@@ -1,23 +1,22 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Fraunces, Newsreader, JetBrains_Mono } from 'next/font/google';
+import { Bricolage_Grotesque, Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-const display = Fraunces({
+// Display = characterful grotesque (headlines); body/mono = neutral Geist workhorse.
+const display = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-display',
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+  weight: ['400', '600', '700', '800'],
 });
 
-const body = Newsreader({
+const body = Geist({
   subsets: ['latin'],
   variable: '--font-body',
-  weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'],
+  weight: ['400', '500', '600', '700'],
 });
 
-const mono = JetBrains_Mono({
+const mono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
   weight: ['400', '500'],

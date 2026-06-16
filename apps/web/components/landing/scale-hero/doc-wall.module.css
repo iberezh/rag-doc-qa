@@ -1,0 +1,66 @@
+/* Step-0 "haystack": a tilted, full-board wall of real help articles, drifting slowly while a
+   magnifier hunts through it and cards light up as they're opened — the manual-search problem
+   Helpbase removes. Fades out as the deck takes over (data-step on the stage). */
+.wall { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(130% 110% at 50% -10%, #1a1730, #0a0a12 70%); transition: opacity 0.5s ease; }
+[data-step='1'] .wall, [data-step='2'] .wall, [data-step='3'] .wall { opacity: 0; }
+
+/* tilted plane so the archive reads as endless; drifts gently, fades into distance top + bottom */
+.field {
+  position: absolute; left: -6%; right: -6%; top: -10%; bottom: -24%;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  grid-auto-rows: min-content; gap: 15px; padding: 24px; align-content: start;
+  transform: perspective(1150px) rotateX(19deg) scale(1.05);
+  transform-origin: 50% 14%;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 13%, #000 82%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 13%, #000 82%, transparent);
+  animation: fieldDrift 18s ease-in-out infinite;
+}
+
+.card {
+  position: relative; display: flex; flex-direction: column; gap: 7px; overflow: hidden;
+  padding: 12px 14px 13px; border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); animation: cardInspect 6.5s ease-in-out infinite;
+}
+.card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--accent); opacity: 0.85; }
+.policy { --accent: #f08a5d; }
+.guide { --accent: #6ea8fe; }
+.faq { --accent: #8fe3c2; }
+.tag { align-self: flex-start; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.docTitle { margin: 1px 0 0; font-family: var(--font-display); font-weight: 600; font-size: 13px; line-height: 1.2; color: rgba(255, 255, 255, 0.92); }
+.excerpt { margin: 0; font-size: 10.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.5); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); }
+.short { width: 58%; }
+
+/* ripple of "opened" cards chasing the cursor */
+.card:nth-child(7n + 2) { animation-delay: 0.7s; }
+.card:nth-child(7n + 3) { animation-delay: 1.4s; }
+.card:nth-child(7n + 4) { animation-delay: 2.1s; }
+.card:nth-child(7n + 5) { animation-delay: 2.8s; }
+.card:nth-child(7n + 6) { animation-delay: 3.5s; }
+.card:nth-child(7n) { animation-delay: 4.2s; }
+
+/* roaming magnifier — the manual hunt */
+.cursor { position: absolute; z-index: 5; width: 20px; height: 20px; pointer-events: none; animation: cursorRoam 9s ease-in-out infinite; }
+.cursor::before { content: ""; position: absolute; top: 0; left: 0; width: 17px; height: 17px; border: 2px solid rgba(143, 210, 255, 0.95); border-radius: 50%; box-shadow: 0 0 14px rgba(143, 210, 255, 0.55); }
+.cursor::after { content: ""; position: absolute; top: 15px; left: 14px; width: 9px; height: 2px; border-radius: 2px; background: rgba(143, 210, 255, 0.95); transform: rotate(45deg); transform-origin: left center; }
+
+@keyframes fieldDrift {
+  0%, 100% { transform: perspective(1150px) rotateX(19deg) scale(1.05) translateY(0); }
+  50% { transform: perspective(1150px) rotateX(19deg) scale(1.05) translateY(-22px); }
+}
+@keyframes cardInspect {
+  0%, 100% { border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); transform: translateY(0); }
+  8% { border-color: rgba(143, 210, 255, 0.55); box-shadow: 0 16px 32px rgba(0, 0, 0, 0.55); transform: translateY(-6px); }
+  18% { border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); transform: translateY(0); }
+}
+@keyframes cursorRoam {
+  0% { top: 26%; left: 20%; }
+  22% { top: 58%; left: 68%; }
+  46% { top: 34%; left: 50%; }
+  70% { top: 66%; left: 30%; }
+  100% { top: 26%; left: 20%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field, .card, .cursor { animation: none; }
+}

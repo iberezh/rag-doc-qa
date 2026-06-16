@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/landing/logo';
 
 export function LandingFooter() {
   return (
@@ -19,14 +20,9 @@ export function LandingFooter() {
         </Button>
       </section>
       <footer className="relative z-[2] border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-8">
-          <div className="flex items-baseline gap-2.5">
-            <span className="inline-block h-2.5 w-2.5 rotate-45 bg-primary" aria-hidden />
-            <span className="font-display font-semibold">Helpbase</span>
-          </div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Docs → chatbot → captured leads
-          </p>
+        <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-6 py-8">
+          <Logo className="h-5 w-auto" />
+          <span className="font-display font-semibold">Helpbase</span>
         </div>
       </footer>
     </>

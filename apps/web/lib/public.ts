@@ -32,18 +32,20 @@ export async function captureLead(
   }
 }
 
-export async function* streamPublicChat(
-  publicKey: string,
-  query: string,
-  host: string | null,
-  signal?: AbortSignal,
-): AsyncGenerator<ChatEvent> {
-  const suffix = host ? `?o=${encodeURIComponent(host)}` : '';
-  const res = await fetch(`${API_BASE}/public/bots/${publicKey}/chat${suffix}`, {
+export interface PublicChatRequest {
+  publicKey: string;
+  query: string;
+  host: string | null;
+  signal?: AbortSignal;
+}
+
+export async function* streamPublicChat(req: PublicChatRequest): AsyncGenerator<ChatEvent> {
+  const suffix = req.host ? `?o=${encodeURIComponent(req.host)}` : '';
+  const res = await fetch(`${API_BASE}/public/bots/${req.publicKey}/chat${suffix}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-    signal: signal ?? null,
+    body: JSON.stringify({ query: req.query }),
+    signal: req.signal ?? null,
   });
   if (!res.ok || !res.body) {
     throw new Error(await errorMessage(res));

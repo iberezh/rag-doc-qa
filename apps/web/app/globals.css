@@ -31,9 +31,61 @@
     @apply border-border;
   }
 
+  /* Smooth in-page anchor scrolling (honoring reduced-motion); the offset keeps section
+     headings clear of the fixed hero nav when jumped to. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Scroll-reveal: blocks fade/slide in as they enter view (driven by <ScrollReveal>). Gated on
+     .reveal-ready (added by JS) so no-JS users always see content; only applies when motion is ok. */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-ready [data-reveal] {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+        transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .reveal-ready [data-reveal='left'] {
+      transform: translateX(-28px);
+    }
+    .reveal-ready [data-reveal='right'] {
+      transform: translateX(28px);
+    }
+    .reveal-ready [data-reveal-delay='1'] { transition-delay: 80ms; }
+    .reveal-ready [data-reveal-delay='2'] { transition-delay: 160ms; }
+    .reveal-ready [data-reveal-delay='3'] { transition-delay: 240ms; }
+    .reveal-ready [data-reveal-delay='4'] { transition-delay: 320ms; }
+    .reveal-ready [data-reveal].is-revealed {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* FAQ answer fades in on open. Height stays native (no janky height interpolation = no freeze). */
+    #faq details[open] > p {
+      animation: faq-reveal 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+  }
+
+  @keyframes faq-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-body), Georgia, serif;
+    font-family: var(--font-body), system-ui, sans-serif;
     font-size: 17px;
     line-height: 1.62;
     -webkit-font-smoothing: antialiased;
@@ -98,5 +150,33 @@
     vertical-align: text-bottom;
     background: hsl(var(--primary));
     animation: blink 1.05s steps(1) infinite;
+  }
+
+  /* A vermilion highlight that drifts smoothly across the text (ink → accent → ink). */
+  @keyframes text-flow {
+    from {
+      background-position: 0% 0;
+    }
+    to {
+      background-position: 100% 0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .text-flow {
+      background-image: linear-gradient(
+        100deg,
+        hsl(var(--foreground)) 0%,
+        hsl(var(--foreground)) 42%,
+        hsl(var(--primary)) 50%,
+        hsl(var(--foreground)) 58%,
+        hsl(var(--foreground)) 100%
+      );
+      background-size: 260% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      animation: text-flow 5.5s ease-in-out infinite alternate;
+    }
   }
 }

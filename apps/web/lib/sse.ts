@@ -10,6 +10,15 @@ function parseBlock(block: string): ChatEvent | null {
   return json ? (JSON.parse(json) as ChatEvent) : null;
 }
 
+function* eventsFrom(blocks: string[]): Generator<ChatEvent> {
+  for (const block of blocks) {
+    const event = parseBlock(block);
+    if (event) {
+      yield event;
+    }
+  }
+}
+
 /** Parses a `data: {...}\n\n` SSE stream into typed chat events. */
 export async function* parseSse(stream: ReadableStream<Uint8Array>): AsyncGenerator<ChatEvent> {
   const reader = stream.getReader();
@@ -25,12 +34,7 @@ export async function* parseSse(stream: ReadableStream<Uint8Array>): AsyncGenera
       buffer += decoder.decode(value, { stream: true });
       const blocks = buffer.split('\n\n');
       buffer = blocks.pop() ?? '';
-      for (const block of blocks) {
-        const event = parseBlock(block);
-        if (event) {
-          yield event;
-        }
-      }
+      yield* eventsFrom(blocks);
     }
   } finally {
     // Release the lock if the consumer abandons the generator (unmount / abort).
