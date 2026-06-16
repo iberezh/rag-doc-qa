@@ -63,3 +63,11 @@ export interface BotAnalytics {
   recent: ConversationView[];
   unanswered: ConversationView[];
 }
+
+export interface BillingStatus {
+  plan: Plan;
+  limits: { bots: number; messagesPerMonth: number; badgeRemoval: boolean };
+  bots: number;
+  messagesUsed: number;
+  stripeEnabled: boolean;
+}

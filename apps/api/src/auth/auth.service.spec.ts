@@ -14,7 +14,7 @@ function buildUser(overrides: Partial<UserWithAccount> = {}): UserWithAccount {
     email: 'owner@acme.com',
     passwordHash: 'hash',
     createdAt: new Date(),
-    account: { id: 'a1', name: 'Acme', plan: Plan.FREE, createdAt: new Date() },
+    account: { id: 'a1', name: 'Acme', plan: Plan.FREE, stripeCustomerId: null, createdAt: new Date() },
     ...overrides,
   };
 }

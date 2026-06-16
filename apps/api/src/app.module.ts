@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from './config/config.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { BillingModule } from './billing/billing.module';
 import { BotsModule } from './bots/bots.module';
 import { EmbeddingsModule } from './embeddings/embeddings.module';
 import { DocumentsModule } from './documents/documents.module';
@@ -16,6 +17,7 @@ import { HealthModule } from './health/health.module';
     ConfigModule,
     PrismaModule,
     AuthModule,
+    BillingModule,
     BotsModule,
     EmbeddingsModule,
     DocumentsModule,

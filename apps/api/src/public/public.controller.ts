@@ -13,7 +13,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import type { Bot } from '@prisma/client';
 import type { Request, Response } from 'express';
+import { BillingService } from '../billing/billing.service';
+import { limitsFor } from '../billing/plans';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
 import { ChatSchema, type ChatInput } from '../chat/schemas/chat.schema';
@@ -34,6 +37,9 @@ interface PublicBotConfig {
 // A `type` (not interface) so it stays assignable to Prisma's InputJsonValue index signature.
 type CitationRecord = { filename: string; chunkIndex: number };
 
+const MESSAGE_LIMIT_MESSAGE =
+  'This assistant has reached its monthly message limit. Please check back later.';
+
 const asString = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
@@ -41,6 +47,12 @@ const sse = (data: unknown): string => `data: ${JSON.stringify(data)}\n\n`;
 
 const slimCitations = (sources: RetrievedChunk[]): CitationRecord[] =>
   sources.map((source) => ({ filename: source.filename, chunkIndex: source.chunkIndex }));
+
+function startSse(res: Response): void {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+}
 
 // Unauthenticated, rate-limited endpoints the embeddable widget calls from customer sites.
 @Controller('public/bots/:publicKey')
@@ -50,14 +62,16 @@ export class PublicController {
     private readonly bots: BotsService,
     private readonly chat: ChatService,
     private readonly conversations: ConversationsService,
+    private readonly billing: BillingService,
   ) {}
 
-  // Public display config (no secrets) — intentionally not origin-gated: the widget renders
-  // these fields on customer sites, so they are already public.
+  // Public display config (no secrets). The "Powered by" badge can only be hidden on a paid plan.
   @Get()
   async config(@Param('publicKey') publicKey: string): Promise<PublicBotConfig> {
     const bot = await this.bots.getByPublicKey(publicKey);
-    return { name: bot.name, greeting: bot.greeting, color: bot.color, showBadge: bot.showBadge };
+    const plan = await this.billing.accountPlan(bot.accountId);
+    const showBadge = limitsFor(plan).badgeRemoval ? bot.showBadge : true;
+    return { name: bot.name, greeting: bot.greeting, color: bot.color, showBadge };
   }
 
   @Post('chat')
@@ -78,16 +92,23 @@ export class PublicController {
       throw new ForbiddenException('This domain is not allowed to embed this bot');
     }
 
-    const { id: conversationId } = await this.conversations.start(bot.id, body.query);
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write(sse({ type: 'conversation', conversationId }));
+    startSse(res);
+    if (!(await this.billing.consumeMessage(bot.accountId))) {
+      res.write(sse({ type: 'token', text: MESSAGE_LIMIT_MESSAGE }));
+      res.write(sse({ type: 'done', answered: false }));
+      res.end();
+      return;
+    }
+    await this.streamAnswer(res, bot, body.query);
+  }
 
+  private async streamAnswer(res: Response, bot: Bot, query: string): Promise<void> {
+    const { id: conversationId } = await this.conversations.start(bot.id, query);
+    res.write(sse({ type: 'conversation', conversationId }));
     let answer = '';
     let sources: RetrievedChunk[] = [];
     try {
-      for await (const event of this.chat.streamAnswer(bot.id, body.query)) {
+      for await (const event of this.chat.streamAnswer(bot.id, query)) {
         if (event.type === 'sources') sources = event.sources;
         if (event.type === 'token') answer += event.text;
         if (event.type !== 'done') res.write(sse(event));

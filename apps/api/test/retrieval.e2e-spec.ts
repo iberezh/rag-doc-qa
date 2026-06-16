@@ -26,6 +26,8 @@ describe('Retrieval (e2e)', () => {
     await app.init();
     prisma = moduleRef.get(PrismaService);
     session = await signup(app, 'retrieval');
+    // STARTER allows multiple bots (FREE caps at 1) — set directly, no Stripe needed.
+    await prisma.account.update({ where: { id: session.accountId }, data: { plan: 'STARTER' } });
     botA = await createBot(app, session.cookie, 'Bot A');
     botB = await createBot(app, session.cookie, 'Bot B');
   });

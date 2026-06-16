@@ -7,7 +7,8 @@ import { AppConfigService } from './config/app-config.service';
 const GLOBAL_PREFIX = 'api';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // rawBody lets the Stripe webhook verify signatures against the unparsed payload.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const config = app.get(AppConfigService);
 
   app.setGlobalPrefix(GLOBAL_PREFIX);

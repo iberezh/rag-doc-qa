@@ -30,15 +30,29 @@ enum MessageRole {
 }
 
 model Account {
-  id        String     @id @default(uuid()) @db.Uuid
-  name      String
-  plan      Plan       @default(FREE)
-  createdAt DateTime   @default(now()) @map("created_at")
-  users     User[]
-  bots      Bot[]
-  documents Document[]
+  id               String         @id @default(uuid()) @db.Uuid
+  name             String
+  plan             Plan           @default(FREE)
+  stripeCustomerId String?        @unique @map("stripe_customer_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  users            User[]
+  bots             Bot[]
+  documents        Document[]
+  usageCounters    UsageCounter[]
 
   @@map("accounts")
+}
+
+model UsageCounter {
+  id        String   @id @default(uuid()) @db.Uuid
+  accountId String   @map("account_id") @db.Uuid
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  period    String // billing month, "YYYY-MM"
+  count     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([accountId, period])
+  @@map("usage_counters")
 }
 
 model Bot {

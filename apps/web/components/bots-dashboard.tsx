@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { createBot, listBots } from '@/lib/bots';
 import type { Bot } from '@/lib/types';
 import { AccountMenu } from './account-menu';
+import { BillingPanel } from './billing-panel';
 
 export function BotsDashboard() {
   const [bots, setBots] = useState<Bot[]>([]);
@@ -56,6 +57,8 @@ export function BotsDashboard() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+        <BillingPanel />
+
         <h1 className="font-display text-3xl font-semibold">Your chatbots</h1>
         <p className="mt-1 font-body italic text-muted-foreground">
           Each bot answers from its own documents and embeds on your site.

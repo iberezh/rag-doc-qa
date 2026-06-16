@@ -33,4 +33,20 @@ export class AppConfigService {
   get groqApiKey(): string | undefined {
     return this.config.get('GROQ_API_KEY', { infer: true });
   }
+
+  get stripeSecretKey(): string | undefined {
+    return this.config.get('STRIPE_SECRET_KEY', { infer: true });
+  }
+
+  get stripeWebhookSecret(): string | undefined {
+    return this.config.get('STRIPE_WEBHOOK_SECRET', { infer: true });
+  }
+
+  get stripePriceStarter(): string | undefined {
+    return this.config.get('STRIPE_PRICE_STARTER', { infer: true });
+  }
+
+  get stripePricePro(): string | undefined {
+    return this.config.get('STRIPE_PRICE_PRO', { infer: true });
+  }
 }
