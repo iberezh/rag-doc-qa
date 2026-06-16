@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RetrievalModule } from '../retrieval/retrieval.module';
+import { BillingModule } from '../billing/billing.module';
 import { BotsModule } from '../bots/bots.module';
 import { AppConfigService } from '../config/app-config.service';
 import { ChatController } from './chat.controller';
@@ -14,7 +15,7 @@ function createChatModel(config: AppConfigService): ChatModel {
 }
 
 @Module({
-  imports: [RetrievalModule, BotsModule],
+  imports: [RetrievalModule, BotsModule, BillingModule],
   controllers: [ChatController],
   providers: [
     ChatService,

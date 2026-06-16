@@ -17,6 +17,11 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Architectural limits from CLAUDE.md not covered by the recommended presets.
+      complexity: ['error', 15],
+      'max-depth': ['error', 3],
+      'no-nested-ternary': 'error',
+      'max-lines': ['warn', { max: 150, skipBlankLines: true, skipComments: true }],
     },
   },
 );

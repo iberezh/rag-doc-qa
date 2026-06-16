@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { BillingModule } from '../billing/billing.module';
 import { BotsModule } from '../bots/bots.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConversationsModule } from '../conversations/conversations.module';
@@ -8,6 +9,7 @@ import { PublicController } from './public.controller';
 
 @Module({
   imports: [
+    BillingModule,
     BotsModule,
     ChatModule,
     ConversationsModule,

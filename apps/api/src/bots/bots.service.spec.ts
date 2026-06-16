@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import type { Bot } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
+import { BillingService } from '../billing/billing.service';
 import { BotsRepository } from './bots.repository';
 import { BotsService } from './bots.service';
 
@@ -21,7 +22,8 @@ function buildBot(overrides: Partial<Bot> = {}): Bot {
 
 function buildService() {
   const repo = mockDeep<BotsRepository>();
-  return { repo, service: new BotsService(repo) };
+  const billing = mockDeep<BillingService>();
+  return { repo, billing, service: new BotsService(repo, billing) };
 }
 
 describe('BotsService', () => {

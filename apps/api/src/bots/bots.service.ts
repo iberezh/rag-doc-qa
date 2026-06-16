@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Bot } from '@prisma/client';
+import { BillingService } from '../billing/billing.service';
 import { BotsRepository } from './bots.repository';
 import { generatePublicKey } from './public-key';
 import type { CreateBotInput } from './schemas/create-bot.schema';
@@ -7,9 +8,13 @@ import type { UpdateBotInput } from './schemas/update-bot.schema';
 
 @Injectable()
 export class BotsService {
-  constructor(private readonly repo: BotsRepository) {}
+  constructor(
+    private readonly repo: BotsRepository,
+    private readonly billing: BillingService,
+  ) {}
 
-  create(accountId: string, input: CreateBotInput): Promise<Bot> {
+  async create(accountId: string, input: CreateBotInput): Promise<Bot> {
+    await this.billing.assertCanCreateBot(accountId);
     return this.repo.create({ accountId, name: input.name, publicKey: generatePublicKey() });
   }
 
