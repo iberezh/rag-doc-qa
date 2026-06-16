@@ -65,6 +65,24 @@ describe('Billing (e2e)', () => {
     expect((await createBot('Bot 2')).status).toBe(201);
   });
 
+  it('confirm returns billing status (no-op when Stripe is disabled)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/billing/confirm')
+      .set('Cookie', session.cookie)
+      .send({ sessionId: 'cs_test_123' });
+    expect(res.status).toBe(201);
+    expect(res.body.plan).toBeDefined();
+    expect(res.body.stripeEnabled).toBe(false);
+  });
+
+  it('confirm rejects an empty session id', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/billing/confirm')
+      .set('Cookie', session.cookie)
+      .send({ sessionId: '' });
+    expect(res.status).toBe(400);
+  });
+
   it('rejects billing status without authentication', async () => {
     const res = await request(app.getHttpServer()).get('/api/billing');
     expect(res.status).toBe(401);

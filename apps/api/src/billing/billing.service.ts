@@ -37,16 +37,11 @@ export class BillingService {
     };
   }
 
-  async checkout(
-    accountId: string,
-    plan: PaidPlan,
-    successUrl: string,
-    cancelUrl: string,
-  ): Promise<CheckoutResult> {
+  async checkout(accountId: string, plan: PaidPlan, appUrl: string): Promise<CheckoutResult> {
     const acct = await this.requireAccount(accountId);
     if (!this.stripe.isEnabled()) {
       await this.repo.setPlan(accountId, plan); // mock upgrade — no real charge
-      return { url: `${successUrl}?upgraded=${plan}`, mock: true };
+      return { url: `${appUrl}?upgraded=${plan}`, mock: true };
     }
     const priceId = priceIdForPlan(plan, this.prices());
     if (!priceId) {
@@ -56,8 +51,25 @@ export class BillingService {
     if (customerId !== acct.stripeCustomerId) {
       await this.repo.setStripeCustomer(accountId, customerId);
     }
-    const url = await this.stripe.createCheckout({ customerId, priceId, successUrl, cancelUrl });
+    const url = await this.stripe.createCheckout({
+      customerId,
+      priceId,
+      successUrl: `${appUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${appUrl}?checkout=cancel`,
+    });
     return { url, mock: false };
+  }
+
+  /** Syncs the plan from a returning Checkout Session, so upgrades land without a webhook. */
+  async confirmCheckout(accountId: string, sessionId: string): Promise<BillingStatus> {
+    if (this.stripe.isEnabled()) {
+      const result = await this.stripe.retrieveCheckoutPlan(sessionId);
+      const acct = await this.requireAccount(accountId);
+      if (result && result.customerId === acct.stripeCustomerId) {
+        await this.repo.setPlan(accountId, planForPriceId(result.priceId, this.prices()));
+      }
+    }
+    return this.status(accountId);
   }
 
   async portal(accountId: string, returnUrl: string): Promise<string> {

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const DEFAULT_PORT = 4000;
-const DEFAULT_CORS_ORIGIN = 'http://localhost:3000';
+const DEFAULT_CORS_ORIGIN = 'http://localhost:3001';
 
 // An empty env value ("VAR=") is treated as unset, so blank optional vars don't fail validation.
 const optionalSecret = z.preprocess(

@@ -21,6 +21,7 @@ import { BillingService } from './billing.service';
 import { StripeService } from './stripe.service';
 import type { BillingStatus, CheckoutResult } from './billing.types';
 import { CheckoutSchema, type CheckoutInput } from './schemas/checkout.schema';
+import { ConfirmSchema, type ConfirmInput } from './schemas/confirm.schema';
 
 @Controller('billing')
 export class BillingController {
@@ -42,8 +43,16 @@ export class BillingController {
     @CurrentAccount() { accountId }: AuthContext,
     @Body(new ZodValidationPipe(CheckoutSchema)) body: CheckoutInput,
   ): Promise<CheckoutResult> {
-    const appUrl = `${this.config.corsOrigin}/app`;
-    return this.billing.checkout(accountId, body.plan, appUrl, appUrl);
+    return this.billing.checkout(accountId, body.plan, `${this.config.corsOrigin}/app`);
+  }
+
+  @Post('confirm')
+  @UseGuards(JwtAuthGuard)
+  confirm(
+    @CurrentAccount() { accountId }: AuthContext,
+    @Body(new ZodValidationPipe(ConfirmSchema)) body: ConfirmInput,
+  ): Promise<BillingStatus> {
+    return this.billing.confirmCheckout(accountId, body.sessionId);
   }
 
   @Post('portal')

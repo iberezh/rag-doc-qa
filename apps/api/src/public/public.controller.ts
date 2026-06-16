@@ -19,6 +19,7 @@ import { BillingService } from '../billing/billing.service';
 import { limitsFor } from '../billing/plans';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
+import { MESSAGE_LIMIT_MESSAGE } from '../chat/chat.constants';
 import { ChatSchema, type ChatInput } from '../chat/schemas/chat.schema';
 import { ConversationsService } from '../conversations/conversations.service';
 import { LeadSchema, type LeadInput } from '../conversations/schemas/lead.schema';
@@ -36,9 +37,6 @@ interface PublicBotConfig {
 
 // A `type` (not interface) so it stays assignable to Prisma's InputJsonValue index signature.
 type CitationRecord = { filename: string; chunkIndex: number };
-
-const MESSAGE_LIMIT_MESSAGE =
-  'This assistant has reached its monthly message limit. Please check back later.';
 
 const asString = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;

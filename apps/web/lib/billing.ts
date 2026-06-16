@@ -22,6 +22,19 @@ export async function startCheckout(plan: 'STARTER' | 'PRO'): Promise<{ url: str
   return jsonOf<{ url: string }>(res);
 }
 
+export async function confirmCheckout(sessionId: string): Promise<BillingStatus> {
+  const res = await fetch(`${API_BASE}/billing/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ sessionId }),
+  });
+  if (!res.ok) {
+    throw new Error(await errorMessage(res));
+  }
+  return jsonOf<BillingStatus>(res);
+}
+
 export async function openPortal(): Promise<{ url: string }> {
   const res = await fetch(`${API_BASE}/billing/portal`, { method: 'POST', credentials: 'include' });
   if (!res.ok) {

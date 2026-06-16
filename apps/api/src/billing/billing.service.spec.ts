@@ -26,7 +26,7 @@ describe('BillingService', () => {
     stripe.isEnabled.mockReturnValue(false);
     repo.loadAccount.mockResolvedValue(account());
 
-    const result = await service.checkout('a1', 'STARTER', 'http://web/app', 'http://web/app');
+    const result = await service.checkout('a1', 'STARTER', 'http://web/app');
 
     expect(result.mock).toBe(true);
     expect(repo.setPlan).toHaveBeenCalledWith('a1', 'STARTER');
@@ -39,11 +39,37 @@ describe('BillingService', () => {
     stripe.ensureCustomer.mockResolvedValue('cus_1');
     stripe.createCheckout.mockResolvedValue('https://checkout.stripe/session');
 
-    const result = await service.checkout('a1', 'PRO', 'http://web/app', 'http://web/app');
+    const result = await service.checkout('a1', 'PRO', 'http://web/app');
 
     expect(stripe.createCheckout).toHaveBeenCalledWith(expect.objectContaining({ priceId: 'price_p' }));
     expect(repo.setStripeCustomer).toHaveBeenCalledWith('a1', 'cus_1');
     expect(result).toEqual({ url: 'https://checkout.stripe/session', mock: false });
+  });
+
+  it('confirmCheckout syncs the plan from a returning session for the matching customer', async () => {
+    const { stripe, repo, service } = build();
+    stripe.isEnabled.mockReturnValue(true);
+    repo.loadAccount.mockResolvedValue(account({ stripeCustomerId: 'cus_1' }));
+    stripe.retrieveCheckoutPlan.mockResolvedValue({ customerId: 'cus_1', priceId: 'price_p' });
+    repo.countBots.mockResolvedValue(0);
+    repo.getUsage.mockResolvedValue(0);
+
+    await service.confirmCheckout('a1', 'cs_test_1');
+
+    expect(repo.setPlan).toHaveBeenCalledWith('a1', 'PRO');
+  });
+
+  it('confirmCheckout ignores a session belonging to a different customer', async () => {
+    const { stripe, repo, service } = build();
+    stripe.isEnabled.mockReturnValue(true);
+    repo.loadAccount.mockResolvedValue(account({ stripeCustomerId: 'cus_1' }));
+    stripe.retrieveCheckoutPlan.mockResolvedValue({ customerId: 'cus_other', priceId: 'price_p' });
+    repo.countBots.mockResolvedValue(0);
+    repo.getUsage.mockResolvedValue(0);
+
+    await service.confirmCheckout('a1', 'cs_test_1');
+
+    expect(repo.setPlan).not.toHaveBeenCalled();
   });
 
   it('a subscription event maps the price to a plan for that customer', async () => {

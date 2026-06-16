@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { getBilling, openPortal, startCheckout } from '@/lib/billing';
+import { confirmCheckout, getBilling, openPortal, startCheckout } from '@/lib/billing';
 import type { BillingStatus, Plan } from '@/lib/types';
 
 const PLAN_LABEL: Record<Plan, string> = {
@@ -12,6 +12,17 @@ const PLAN_LABEL: Record<Plan, string> = {
   PRO: 'Pro · $99/mo',
 };
 
+// Reads (and clears) the Checkout return params so the plan syncs without waiting on a webhook.
+function consumeSessionId(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if (sessionId || params.has('checkout') || params.has('upgraded')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  return sessionId;
+}
+
 export function BillingPanel() {
   const [status, setStatus] = useState<BillingStatus | null>(null);
   const [busy, setBusy] = useState(false);
@@ -19,9 +30,9 @@ export function BillingPanel() {
 
   useEffect(() => {
     let active = true;
-    getBilling()
-      .then((found) => active && setStatus(found))
-      .catch(() => {});
+    const sessionId = consumeSessionId();
+    const load = sessionId ? confirmCheckout(sessionId) : getBilling();
+    load.then((found) => active && setStatus(found)).catch(() => {});
     return () => {
       active = false;
     };

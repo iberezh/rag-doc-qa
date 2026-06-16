@@ -51,6 +51,23 @@ export class StripeService {
     return session.url ?? input.successUrl;
   }
 
+  // Reads a completed Checkout Session so the app can sync the plan on return (no webhook needed).
+  async retrieveCheckoutPlan(
+    sessionId: string,
+  ): Promise<{ customerId: string; priceId: string } | null> {
+    const session = await this.require().checkout.sessions.retrieve(sessionId, {
+      expand: ['subscription'],
+    });
+    const sub = session.subscription;
+    if (session.status !== 'complete' || !sub || typeof sub === 'string') {
+      return null;
+    }
+    const priceId = sub.items.data[0]?.price.id;
+    const customer = session.customer;
+    const customerId = typeof customer === 'string' ? customer : (customer?.id ?? '');
+    return priceId && customerId ? { customerId, priceId } : null;
+  }
+
   async createPortal(customerId: string, returnUrl: string): Promise<string> {
     const session = await this.require().billingPortal.sessions.create({
       customer: customerId,
