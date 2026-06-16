@@ -7,6 +7,7 @@ import { useChat } from '@/hooks/use-chat';
 import { useLibrary } from '@/hooks/use-library';
 import { getBot } from '@/lib/bots';
 import type { Bot } from '@/lib/types';
+import { Logo } from '@/components/landing/logo';
 import { AccountMenu } from './account-menu';
 import { AnalyticsPanel } from './analytics-panel';
 import { Button } from './ui/button';
@@ -45,7 +46,7 @@ export function BotWorkspace({ botId }: { botId: string }) {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <span className="inline-block h-3 w-3 rotate-45 bg-primary" aria-hidden />
+          <Logo className="h-6 w-auto" />
           <h1 className="font-display text-xl font-semibold tracking-tight">{bot?.name ?? 'Bot'}</h1>
         </div>
         <div className="flex items-center gap-2">

@@ -25,12 +25,17 @@ export function AddContent({ busy, error, onAddText, onAddFile }: AddContentProp
     }
   }
 
-  function pickFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) {
-      void onAddFile(file);
-    }
+  // Upload selected files one at a time so `busy` stays accurate per file and docs prepend in
+  // order; stop at the first failure so its error message stays on screen.
+  async function pickFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
     event.target.value = '';
+    for (const file of files) {
+      const ok = await onAddFile(file);
+      if (!ok) {
+        break;
+      }
+    }
   }
 
   return (
@@ -61,7 +66,8 @@ export function AddContent({ busy, error, onAddText, onAddFile }: AddContentProp
           ref={fileRef}
           type="file"
           accept=".pdf,.txt,.md"
-          onChange={pickFile}
+          multiple
+          onChange={(event) => void pickFiles(event)}
           className="hidden"
         />
       </div>

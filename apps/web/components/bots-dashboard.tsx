@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { createBot, listBots } from '@/lib/bots';
 import type { Bot } from '@/lib/types';
+import { Logo } from '@/components/landing/logo';
 import { AccountMenu } from './account-menu';
 
 export function BotsDashboard() {
@@ -47,12 +48,14 @@ export function BotsDashboard() {
 
   return (
     <div className="relative z-[2] flex min-h-screen flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-border px-6 py-4">
-        <div className="flex items-baseline gap-3">
-          <span className="inline-block h-3 w-3 rotate-45 bg-primary" aria-hidden />
+      <header className="flex items-center justify-center gap-2 border-b border-border px-6 py-4 relative">
+        <div className="flex items-center gap-1.5">
+          <Logo className="h-7 w-auto" />
           <span className="font-display text-2xl font-semibold tracking-tight">Helpbase</span>
         </div>
-        <AccountMenu />
+        <div className="absolute right-6">
+          <AccountMenu />
+        </div>
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">

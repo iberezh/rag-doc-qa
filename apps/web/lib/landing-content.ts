@@ -26,106 +26,106 @@ export interface FaqItem {
 
 // Shared "eyebrow" label style used above each section heading.
 export const EYEBROW =
-  'font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground';
+  "font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground";
 
 export const STEPS: Step[] = [
   {
-    n: '01',
-    title: 'Upload your docs',
-    body: 'Paste text or drop in PDFs, Markdown, and notes. Helpbase chunks and indexes them in seconds — no pipeline to wire up.',
+    n: "01",
+    title: "Upload your docs",
+    body: "Drop in PDFs, Markdown, text, or API docs. Helpbase indexes them in seconds and understands context, not just keywords.",
   },
   {
-    n: '02',
-    title: 'Embed one line',
-    body: 'Copy a single script tag onto your site. A chat launcher appears in an isolated iframe — no CSS conflicts, no build step.',
+    n: "02",
+    title: "Embed on your site",
+    body: "One script tag. A chat widget appears. Customers get instant answers. Your support team gets freed up.",
   },
   {
-    n: '03',
-    title: 'Deflect & capture',
-    body: 'Visitors get grounded, cited answers. When the bot is not sure, it captures the question and their email for your team.',
+    n: "03",
+    title: "Scale without hiring",
+    body: "Unanswered questions become leads. You see gaps in your docs. Support costs drop 60-80%.",
   },
 ];
 
 export const FEATURES: Feature[] = [
   {
-    title: 'Answers grounded in your docs',
-    body: 'Every reply is assembled from your content and footnoted to the exact source passage — not a confident guess.',
+    title: "Instant answers, 24/7",
+    body: "Customers get replies in seconds. No queue. No wait times. Support happens while they are still on your site.",
   },
   {
-    title: 'Deflect, then capture',
-    body: 'Confident questions are answered instantly. The rest become leads — the question plus a visitor email, waiting in your dashboard.',
+    title: "Answers grounded in your docs",
+    body: "Every reply cites the exact source. When uncertain, it escalates as a lead instead of guessing.",
   },
   {
-    title: 'See what your docs miss',
-    body: 'An unanswered-questions report shows precisely where your documentation has gaps worth closing.',
+    title: "See what your docs miss",
+    body: "Unanswered questions show gaps in your documentation. Close them and answer the next customer automatically.",
   },
   {
-    title: 'Scoped, multi-bot knowledge',
-    body: 'Spin up a bot per product or site. Each one only ever answers from its own corpus — never another tenant’s.',
+    title: "Multi-bot, scoped knowledge",
+    body: "One bot per product. Each answers only from its own docs. No cross-contamination, perfect isolation.",
   },
 ];
 
 export const PLANS: Plan[] = [
   {
-    name: 'Free',
-    price: '$0',
-    cadence: 'forever',
-    tagline: 'Try it on one site.',
-    features: ['1 chatbot', '100 messages / mo', 'Grounded answers + citations', '“Powered by” badge'],
+    name: "Free",
+    price: "$0",
+    cadence: "forever",
+    tagline: "Test the speed.",
+    features: ["1 chatbot", "100 messages / mo", "Instant answers + citations", "Powered by badge"],
     featured: false,
-    cta: 'Start free',
+    cta: "Start free",
   },
   {
-    name: 'Starter',
-    price: '$29',
-    cadence: '/ month',
-    tagline: 'For a growing product.',
+    name: "Starter",
+    price: "$29",
+    cadence: "/ month",
+    tagline: "For growing teams.",
     features: [
-      '3 chatbots',
-      '2,000 messages / mo',
-      'Email escalation + lead capture',
-      'Remove the badge',
-      'Basic analytics',
+      "3 chatbots",
+      "2,000 messages / mo",
+      "Lead capture + escalation",
+      "Remove branding",
+      "Unanswered questions report",
     ],
     featured: true,
-    cta: 'Choose Starter',
+    cta: "Choose Starter",
   },
   {
-    name: 'Pro',
-    price: '$99',
-    cadence: '/ month',
-    tagline: 'For busy support teams.',
+    name: "Pro",
+    price: "$99",
+    cadence: "/ month",
+    tagline: "For scale.",
     features: [
-      '10 chatbots',
-      '20,000 messages / mo',
-      'Full unanswered-question analytics',
-      'Custom widget branding',
-      'Priority support',
+      "10 chatbots",
+      "20,000 messages / mo",
+      "Advanced analytics",
+      "Custom widget branding",
+      "Priority support",
     ],
     featured: false,
-    cta: 'Choose Pro',
+    cta: "Choose Pro",
   },
 ];
 
 export const FAQS: FaqItem[] = [
   {
-    q: 'What can I upload?',
-    a: 'PDFs, Markdown, and plain text. Paste content directly or upload files — Helpbase extracts and indexes the text for you.',
+    q: "How fast are the answers?",
+    a: "Customers see replies in seconds. Average response time is 2-5 seconds from question to answered message.",
   },
   {
-    q: 'How accurate are the answers?',
-    a: 'Answers are generated only from your documents and cite their sources. When the best match is not confident enough, the bot says so instead of guessing.',
+    q: "How accurate are the answers?",
+    a: "Answers only come from your docs and cite the source. When uncertain, Helpbase escalates as a lead instead of guessing.",
   },
   {
-    q: 'Where do unanswered questions go?',
-    a: 'Into your dashboard, with the visitor’s email when they leave one, so your team can follow up and close the gaps.',
+    q: "What if a question is not answered?",
+    a: "It appears in your dashboard as a lead with the visitor email. Use it to close documentation gaps and answer the next customer instantly.",
   },
   {
-    q: 'Do I need to write code?',
-    a: 'Just paste one script tag. The widget is self-contained and styled to your brand.',
+    q: "How much will this save us?",
+    a: "Typical customers see 60-80% reduction in support volume. At $15-25/hour per support agent, most see ROI within weeks.",
   },
   {
-    q: 'Is there really a free plan?',
-    a: 'Yes — one bot and 100 messages a month, free forever. Upgrade when you outgrow it.',
+    q: "Is there a free plan?",
+    a: "Yes - one bot, 100 messages per month, free forever. Perfect for testing. Upgrade when you scale.",
   },
 ];

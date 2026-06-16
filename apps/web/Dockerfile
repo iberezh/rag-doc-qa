@@ -19,5 +19,5 @@ RUN pnpm --filter @rag/web build
 
 WORKDIR /repo/apps/web
 ENV NODE_ENV=production
-EXPOSE 3000
+EXPOSE 3001
 CMD ["pnpm", "start"]

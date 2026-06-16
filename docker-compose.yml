@@ -1,6 +1,6 @@
 # Full stack: `docker compose up` builds and runs Postgres + the NestJS API + the Next.js web.
 # Set GROQ_API_KEY in .env for real answers (otherwise the API uses the mock LLM), and
-# JWT_SECRET for a non-default signing key. Then open http://localhost:3000.
+# JWT_SECRET for a non-default signing key. Then open http://localhost:3001.
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -26,7 +26,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3001
       DATABASE_URL: postgresql://rag:rag@postgres:5432/rag
       # Required — no insecure default. `cp .env.example .env` sets it; generate a real one
       # with `openssl rand -hex 32`. Compose aborts if it is unset.
@@ -49,9 +49,9 @@ services:
     environment:
       NODE_ENV: production
       API_PROXY_TARGET: http://api:4000
-      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3001
     ports:
-      - '3000:3000'
+      - '3001:3001'
     depends_on:
       - api
 

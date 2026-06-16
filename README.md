@@ -91,7 +91,7 @@ cp .env.example .env          # add a free GROQ_API_KEY for real answers; set JW
 docker compose up             # builds & runs postgres + api + web
 # 5432 taken? →  POSTGRES_PORT=5433 docker compose up
 
-# open http://localhost:3000
+# open http://localhost:3001
 ```
 
 Get a free key at <https://console.groq.com>. Without `GROQ_API_KEY`, embeddings and retrieval
@@ -106,7 +106,7 @@ pnpm install
 POSTGRES_PORT=5433 docker compose up -d postgres   # or any Postgres 16 with pgvector
 pnpm --filter api prisma:migrate
 pnpm --filter api dev                              # http://localhost:4000
-pnpm --filter web dev                              # http://localhost:3000
+pnpm --filter web dev                              # http://localhost:3001
 ```
 
 ## Tech stack

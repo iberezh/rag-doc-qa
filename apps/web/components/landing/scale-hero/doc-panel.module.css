@@ -1,0 +1,42 @@
+/* The hero "real" panel: a help/returns.md file shown plainly, walking the RAG pipeline with the
+   deck's stops (data-step on the stage). Pure CSS, decorative (aria-hidden). Hidden behind the
+   doc-wall at step 0; fades in as the deck takes one doc forward. */
+.editor { position: absolute; inset: 0; overflow: hidden; background: #0c0d13; opacity: 0; transition: opacity 0.5s ease; }
+[data-step='1'] .editor, [data-step='2'] .editor, [data-step='3'] .editor { opacity: 1; }
+.body { position: relative; height: 100%; padding: 26px 18px 16px 0; counter-reset: ln; font-family: var(--font-mono); font-size: 12px; line-height: 1.95; color: rgba(255, 255, 255, 0.58); background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 46px, transparent 46px); }
+.chunk { position: relative; transition: opacity 0.45s ease, background-color 0.45s ease, box-shadow 0.45s ease; }
+.ln { margin: 0; padding: 0 14px 0 58px; position: relative; white-space: nowrap; min-height: 1.95em; }
+.ln::before { counter-increment: ln; content: counter(ln); position: absolute; left: 0; width: 40px; text-align: right; color: rgba(255, 255, 255, 0.2); }
+.h { color: #fff; }
+.ln b { color: #fff; font-weight: 500; }
+.score, .cite { position: absolute; top: 4px; right: 14px; font-size: 10px; color: #ffcc33; opacity: 0; }
+.score { transform: translateX(8px); transition: opacity 0.45s ease, transform 0.45s ease; }
+.cite { transition: opacity 0.45s ease; }
+.scan { position: absolute; left: 0; right: 0; top: 0; height: 2px; opacity: 0; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(143, 210, 255, 0.85), transparent); }
+.ribbon { position: absolute; left: 18px; right: 18px; bottom: 12px; padding: 7px 11px; border: 1px solid rgba(255, 204, 51, 0.5); border-radius: 8px; background: rgba(8, 12, 11, 0.82); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffcc33; opacity: 0; transform: translateY(10px); transition: opacity 0.45s ease, transform 0.45s ease; }
+
+/* step 1 — read · segment: chunks get candidate outlines, a scan line sweeps */
+[data-step='1'] .chunk { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+[data-step='1'] .scan { opacity: 1; animation: docScan 2.6s ease-in-out infinite; }
+
+/* step 2 — match: candidates dim, the winner brightens and shows its score */
+[data-step='2'] .chunk { opacity: 0.26; }
+[data-step='2'] .hit { opacity: 1; background-color: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5); }
+[data-step='2'] .hit .score { opacity: 1; transform: none; }
+
+/* step 3 — rank · cited: the winner goes amber, citation + answer ribbon appear */
+[data-step='3'] .chunk { opacity: 0.26; }
+[data-step='3'] .hit { opacity: 1; background-color: rgba(255, 204, 51, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 204, 51, 0.55); }
+[data-step='3'] .hit .cite { opacity: 1; }
+[data-step='3'] .ribbon { opacity: 1; transform: none; }
+
+@keyframes docScan { 0% { top: 0; opacity: 0; } 10% { opacity: 0.9; } 90% { opacity: 0.9; } 100% { top: 100%; opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .editor { opacity: 1; }
+  .scan { display: none; }
+  .chunk { opacity: 0.4; }
+  .hit { opacity: 1; background-color: rgba(255, 204, 51, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 204, 51, 0.55); }
+  .cite { opacity: 1; }
+  .ribbon { opacity: 1; transform: none; }
+}

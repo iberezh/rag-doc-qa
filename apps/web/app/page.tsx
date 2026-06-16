@@ -4,22 +4,23 @@ import { Faq } from '@/components/landing/faq';
 import { Features } from '@/components/landing/features';
 import { HowItWorks } from '@/components/landing/how-it-works';
 import { LandingFooter } from '@/components/landing/landing-footer';
-import { LandingHero } from '@/components/landing/landing-hero';
-import { LandingNav } from '@/components/landing/landing-nav';
 import { Pricing } from '@/components/landing/pricing';
+import { ScrollReveal } from '@/components/landing/scroll-reveal';
+import { BodyNav } from '@/components/landing/scale-hero/body-nav';
+import { ScaleHero } from '@/components/landing/scale-hero/scale-hero';
 import { StructuredData } from '@/components/landing/structured-data';
 import { SITE_URL } from '@/lib/site';
 
 const DESCRIPTION =
-  'Upload your documentation, embed one line of script, and Helpbase answers visitors with grounded, cited replies — capturing every question it can’t answer as a lead.';
+  'Automate support with your own docs. Helpbase answers customer questions instantly, reduces response time from hours to seconds, and captures unanswered questions as leads.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'Helpbase — turn your docs into a support chatbot',
+  title: 'Helpbase — Cut support response time from hours to seconds',
   description: DESCRIPTION,
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Helpbase — turn your docs into a support chatbot',
+    title: 'Helpbase — Cut support response time from hours to seconds',
     description: DESCRIPTION,
     url: '/',
     siteName: 'Helpbase',
@@ -32,9 +33,10 @@ export default function LandingPage() {
   return (
     <>
       <StructuredData />
-      <LandingNav />
+      <ScrollReveal />
+      <ScaleHero />
+      <BodyNav />
       <main>
-        <LandingHero />
         <HowItWorks />
         <Features />
         <Demo />
