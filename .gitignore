@@ -33,6 +33,9 @@ logs/
 models/
 *.onnx
 
+# Large media kept out of git — the demo video lives on external hosting (see README)
+*.mp4
+
 # Editors / OS
 .vscode/*
 !.vscode/extensions.json

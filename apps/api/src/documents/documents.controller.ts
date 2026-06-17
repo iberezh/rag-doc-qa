@@ -48,7 +48,9 @@ export class DocumentsController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: MAX_FILE_SIZE }),
-          new FileTypeValidator({ fileType: ALLOWED_FILE_TYPES }),
+          // Validate the declared mimetype, not magic numbers: plain-text formats (.md/.txt)
+          // have no binary signature, so the default magic-number check rejects them.
+          new FileTypeValidator({ fileType: ALLOWED_FILE_TYPES, skipMagicNumbersValidation: true }),
         ],
         fileIsRequired: true,
       }),
