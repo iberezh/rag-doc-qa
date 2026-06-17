@@ -11,6 +11,8 @@
 
 ![Helpbase landing page](assets/landing.png)
 
+**▶ [Watch the demo video](https://drive.google.com/file/d/18Z7O3fGyPk8LSwHIWHb-AFv_viQXuvI-/view?usp=sharing)** — a short end-to-end walkthrough of the product.
+
 ## What it does
 
 Sign up, create a bot, upload your docs, and drop **one line of script** on your site:
@@ -48,6 +50,9 @@ cover, and the emails left behind:
   unauthenticated, origin-checked, rate-limited public chat endpoint. Streams over SSE.
 - **The product, not just the demo** — landing page (SSR + SEO: metadata, sitemap, robots,
   JSON-LD), signup/login, a dashboard, lead capture, and analytics.
+- **Billing that gates the product** — Stripe Checkout, Billing Portal and webhooks, with
+  per-account usage metering (bots + monthly messages) enforcing FREE / STARTER / PRO limits;
+  a mock fallback runs the whole flow without Stripe keys.
 - **Local-first embeddings** (`transformers.js`, `all-MiniLM-L6-v2`) — no embedding API, no
   cost, offline. Groq for generation, with a **mock fallback** so tests/CI run without a key.
 - **Typed throughout** (strict TS, no `any`), tested (58 unit + 28 e2e), linted, CI on every PR.
@@ -109,19 +114,30 @@ pnpm --filter api dev                              # http://localhost:4000
 pnpm --filter web dev                              # http://localhost:3001
 ```
 
-## Tech stack
+## Tech specification
 
-| Layer        | Choice                                                                   |
-| ------------ | ------------------------------------------------------------------------ |
-| Frontend     | Next.js (App Router), React 19, TypeScript, Tailwind CSS                 |
-| Backend      | NestJS 11, Prisma 6, TypeScript                                          |
-| Auth         | Passport (`passport-local` + `passport-jwt`), httpOnly cookie, bcryptjs  |
-| Embeddings   | `@xenova/transformers` — `all-MiniLM-L6-v2` (384-dim), local, no key     |
-| Vector DB    | Postgres 16 + `pgvector` (cosine `<=>` via `$queryRaw`)                  |
-| LLM          | Groq (`llama-3.3-70b-versatile`) with a mock fallback                    |
-| Widget       | Vanilla `widget.js` loader + isolated iframe; SSE; `@nestjs/throttler`   |
-| Validation   | Zod via `nestjs-zod`                                                      |
-| Tooling      | pnpm workspaces, Docker Compose, GitHub Actions, ESLint + Prettier       |
+| Component | Technology | Details |
+| --- | --- | --- |
+| Web framework | **Next.js 15** (App Router) | SSR + SEO (metadata, sitemap, robots, JSON-LD); same-origin `/api` proxy |
+| UI | **React 19** + TypeScript | Radix Slot, `lucide-react` icons |
+| Styling | **Tailwind CSS 3.4** | design tokens; Bricolage Grotesque + Geist loaded via `next/font` |
+| API framework | **NestJS 11** | Controller → Service → Repository; global Zod validation + exception filter |
+| Language | **TypeScript** (strict) | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, no `any` |
+| ORM | **Prisma 6** | typed client + migrations |
+| Database | **PostgreSQL 16** | multi-tenant: account → bots → documents |
+| Vector store | **pgvector** — `vector(384)` | cosine `<=>` via `$queryRaw`, encapsulated in the repository |
+| Embeddings | **`all-MiniLM-L6-v2`** via `@xenova/transformers` 2.17 | 384-dim, **local** — no API key, no cost, offline |
+| LLM | **Groq `llama-3.3-70b-versatile`** via `groq-sdk` 0.9 | streamed generation; **mock fallback** when no key is set |
+| Doc parsing | **`pdf-parse`** (PDF) + native (`.md` / `.txt`) | chunked before embedding |
+| Auth | **JWT** (`@nestjs/jwt` + `passport-jwt`) | httpOnly cookie `helpbase_token`, `SameSite=Lax`; passwords hashed with `bcryptjs` |
+| Billing | **Stripe 22** (`stripe`) | Checkout + Billing Portal + webhooks; **mock fallback** when no key is set |
+| Plans & limits | FREE / STARTER / PRO | 1 / 3 / 10 bots · 100 / 2 000 / 20 000 messages per month; usage metered monthly (UTC) |
+| Rate limiting | **`@nestjs/throttler`** | on the public (unauthenticated) chat endpoint |
+| Validation | **Zod 3** via `nestjs-zod` | schema-first; types derived from the schema |
+| Streaming | **Server-Sent Events** | token-by-token chat into a `ReadableStream` reader |
+| Widget | vanilla **`widget.js`** + isolated `<iframe>` | origin-checked public chat keyed by a bot's public key |
+| Tests | **Jest + Supertest** | 58 unit + 28 e2e; fake embedder + mock LLM (no network) |
+| Tooling | **pnpm** workspaces · **Docker Compose** · **GitHub Actions** · ESLint + Prettier | CI on every PR |
 
 ## Project layout
 
@@ -147,8 +163,6 @@ rag-doc-qa/                      # repo name; the product is “Helpbase”
 
 ### Deferred (post-MVP)
 
-- **Billing & gating** — Stripe test-mode checkout + usage metering to enforce the plan limits
-  shown on the pricing page (which is currently illustrative).
 - Team seats / invites, email verification + password reset, URL/sitemap ingestion, OCR.
 
 ## License

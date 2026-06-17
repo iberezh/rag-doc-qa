@@ -32,6 +32,11 @@ services:
       # with `openssl rand -hex 32`. Compose aborts if it is unset.
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env (see .env.example)}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      # Stripe (test mode). Empty → mock upgrades; set these in .env to get real Checkout.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PRICE_STARTER: ${STRIPE_PRICE_STARTER:-}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
     ports:
       - '4000:4000'
     depends_on:
@@ -43,9 +48,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       # Same-origin proxy: the browser calls /api/* and Next forwards to the api service,
-      # keeping the httpOnly auth cookie first-party.
+      # keeping the httpOnly auth cookie first-party. Both are baked at build time — the client
+      # base is inlined and the /api rewrite destination is compiled into the route manifest.
       args:
         NEXT_PUBLIC_API_URL: /api
+        API_PROXY_TARGET: http://api:4000
     environment:
       NODE_ENV: production
       API_PROXY_TARGET: http://api:4000
