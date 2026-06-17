@@ -58,9 +58,11 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   return (
     <main className="relative z-[2] flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex animate-in fade-in slide-in-from-top-4 items-center gap-1.5 duration-500">
-          <Logo className="h-7 w-auto" />
-          <span className="font-display text-2xl font-semibold tracking-tight">Helpbase</span>
+        <div className="mb-6 flex animate-in fade-in slide-in-from-top-4 items-center duration-500">
+          <Link href="/" className="flex items-center gap-1.5">
+            <Logo className="h-7 w-auto" />
+            <span className="font-display text-2xl font-semibold tracking-tight">Helpbase</span>
+          </Link>
         </div>
         <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <CardContent className="pt-5">
