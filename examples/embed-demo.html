@@ -26,17 +26,17 @@
     <p>Open this page with <code>?bot=YOUR_PUBLIC_KEY</code> (optionally <code>&amp;app=http://localhost:3000</code>).</p>
     <script>
       (function () {
-        var params = new URLSearchParams(location.search);
-        var key = params.get('bot');
+        const params = new URLSearchParams(location.search);
+        const key = params.get('bot');
         // Use only a validated http(s) ORIGIN (never an arbitrary URL/path) for the script src.
         function safeOrigin(value) {
           try {
-            var u = new URL(value);
+            const u = new URL(value);
             if (u.protocol === 'http:' || u.protocol === 'https:') return u.origin;
           } catch (e) {}
           return 'http://localhost:3000';
         }
-        var app = safeOrigin(params.get('app') || 'http://localhost:3000');
+        const app = safeOrigin(params.get('app') || 'http://localhost:3000');
         if (!key) {
           document.body.insertAdjacentHTML(
             'beforeend',
@@ -44,7 +44,7 @@
           );
           return;
         }
-        var s = document.createElement('script');
+        const s = document.createElement('script');
         s.src = app + '/widget.js';
         s.setAttribute('data-bot', key);
         s.defer = true;
