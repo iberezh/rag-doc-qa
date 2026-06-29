@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { stripCitations } from '@/lib/citations';
 import { CitationChip } from './citation-chip';
 
 interface AnswerTextProps {
@@ -10,18 +11,6 @@ interface AnswerTextProps {
 }
 
 const CITATION = /\[(\d+)\]/g;
-
-// When the bot couldn't answer, citations are suppressed: strip the [n] markers (and the
-// comma-runs / dangling punctuation they leave) so customers never see refs to internal docs.
-function stripCitations(text: string): string {
-  return text
-    .replace(/\s*\[\d+\]/g, '')
-    .replace(/\s*,(?=\s*,)/g, '')
-    .replace(/([.!?])\s*,/g, '$1')
-    .replace(/,\s*(and\b)/gi, ' $1')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
 
 export function AnswerText({
   answer,

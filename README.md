@@ -11,6 +11,8 @@
 
 ![Helpbase landing page](assets/landing.png)
 
+**🌐 [Live demo](https://helpbase.iberezh.site)** — a running instance you can try right now.
+
 **▶ [Watch the demo video](https://drive.google.com/file/d/18Z7O3fGyPk8LSwHIWHb-AFv_viQXuvI-/view?usp=sharing)** — a short end-to-end walkthrough of the product.
 
 ## What it does
