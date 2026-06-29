@@ -5,6 +5,7 @@ import { getPublicBot, type PublicBotConfig, streamPublicChat } from '@/lib/publ
 import type { ChatEvent } from '@/lib/types';
 import { Bubble } from './widget-bubble';
 import { LeadForm } from './widget-lead-form';
+import { stripCitations } from '@/lib/citations';
 
 interface Message {
   id: string;
@@ -95,11 +96,15 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4 text-sm" aria-live="polite">
         <Bubble role="assistant">{config?.greeting ?? 'Hi! How can I help?'}</Bubble>
-        {messages.map((m) => (
-          <Bubble key={m.id} role={m.role} accent={accent}>
-            {m.text || '…'}
-          </Bubble>
-        ))}
+        {messages.map((m) => {
+          // Visitors can't open the source docs, so strip [n] citation markers from replies.
+          const text = m.role === 'assistant' ? stripCitations(m.text) : m.text;
+          return (
+            <Bubble key={m.id} role={m.role} accent={accent}>
+              {text || '…'}
+            </Bubble>
+          );
+        })}
         {needsEmail && conversationId ? (
           <LeadForm publicKey={publicKey} conversationId={conversationId} accent={accent} />
         ) : null}
@@ -118,7 +123,7 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
 
       {config?.showBadge ? (
         <a
-          href="https://github.com/iberezh/rag-doc-qa"
+          href="https://helpbase.iberezh.site"
           target="_blank"
           rel="noreferrer"
           className="pb-2 text-center text-[11px] text-black/40 hover:text-black/60"
