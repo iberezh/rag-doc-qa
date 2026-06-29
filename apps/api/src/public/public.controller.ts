@@ -114,7 +114,10 @@ export class PublicController {
       // Confident retrieval alone isn't enough: the model can still reply "not enough
       // information" on a near-miss chunk. Count that as unanswered so analytics are honest.
       const answered = isConfident(sources) && !isNonAnswer(answer);
-      await this.conversations.complete({ conversationId, answer, citations: slimCitations(sources), answered });
+      // No citations on a non-answer: the customer can't open internal docs, and the model's
+      // [n] refs are meaningless when it couldn't actually answer.
+      const citations = answered ? slimCitations(sources) : [];
+      await this.conversations.complete({ conversationId, answer, citations, answered });
       res.write(sse({ type: 'done', answered }));
     } catch {
       res.write(sse({ type: 'error', message: 'Generation failed' }));

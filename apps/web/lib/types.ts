@@ -27,6 +27,8 @@ export interface Exchange {
   answer: string;
   sources: RetrievedChunk[];
   status: ExchangeStatus;
+  // false once the stream's `done` reports the bot couldn't answer — citations + sources are hidden then.
+  answered?: boolean;
 }
 
 export type LibraryDoc = IngestSummary;
