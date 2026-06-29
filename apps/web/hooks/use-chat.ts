@@ -34,6 +34,8 @@ export function useChat(botId: string): ChatState {
         case 'error':
           return patch(id, { status: 'error' });
         case 'done':
+          // Only set when defined — exactOptionalPropertyTypes rejects assigning `undefined`.
+          if (event.answered !== undefined) patch(id, { answered: event.answered });
           return;
       }
     },

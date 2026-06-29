@@ -22,10 +22,11 @@ export function ExchangeView({ exchange }: { exchange: Exchange }) {
           streaming={exchange.status === 'streaming'}
           activeCitation={active}
           onCite={setActive}
+          showCitations={exchange.answered !== false}
         />
       )}
 
-      {exchange.sources.length > 0 && (
+      {exchange.sources.length > 0 && exchange.answered !== false && (
         <div className="mt-5 grid gap-2">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             Sources
