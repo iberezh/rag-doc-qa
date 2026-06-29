@@ -32,16 +32,26 @@ export function AnalyticsPanel({ botId }: { botId: string }) {
 
   useEffect(() => {
     let active = true;
-    const controller = new AbortController();
-    getAnalytics(botId, controller.signal)
-      .then((found) => active && setData(found))
-      .catch((cause) => {
-        if (!active || (cause instanceof Error && cause.name === 'AbortError')) return;
-        setError(cause instanceof Error ? cause.message : 'Failed to load analytics');
-      });
+    const load = () => {
+      const controller = new AbortController();
+      getAnalytics(botId, controller.signal)
+        .then((found) => active && setData(found))
+        .catch((cause) => {
+          if (!active || (cause instanceof Error && cause.name === 'AbortError')) return;
+          setError(cause instanceof Error ? cause.message : 'Failed to load analytics');
+        });
+      return controller;
+    };
+    let controller = load();
+    // Live updates: re-poll every 5s so new conversations land without a reload.
+    const timer = setInterval(() => {
+      controller.abort();
+      controller = load();
+    }, 5000);
     return () => {
       active = false;
       controller.abort();
+      clearInterval(timer);
     };
   }, [botId]);
 

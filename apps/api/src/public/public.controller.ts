@@ -19,7 +19,7 @@ import { BillingService } from '../billing/billing.service';
 import { limitsFor } from '../billing/plans';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
-import { MESSAGE_LIMIT_MESSAGE } from '../chat/chat.constants';
+import { MESSAGE_LIMIT_MESSAGE, isNonAnswer } from '../chat/chat.constants';
 import { ChatSchema, type ChatInput } from '../chat/schemas/chat.schema';
 import { ConversationsService } from '../conversations/conversations.service';
 import { LeadSchema, type LeadInput } from '../conversations/schemas/lead.schema';
@@ -111,7 +111,9 @@ export class PublicController {
         if (event.type === 'token') answer += event.text;
         if (event.type !== 'done') res.write(sse(event));
       }
-      const answered = isConfident(sources);
+      // Confident retrieval alone isn't enough: the model can still reply "not enough
+      // information" on a near-miss chunk. Count that as unanswered so analytics are honest.
+      const answered = isConfident(sources) && !isNonAnswer(answer);
       await this.conversations.complete({ conversationId, answer, citations: slimCitations(sources), answered });
       res.write(sse({ type: 'done', answered }));
     } catch {

@@ -5,7 +5,6 @@
 const apiOrigin = process.env.API_PROXY_TARGET ?? 'http://localhost:4000';
 
 const nextConfig = {
-  output: 'standalone',
   async rewrites() {
     return [{ source: '/api/:path*', destination: `${apiOrigin}/api/:path*` }];
   },
