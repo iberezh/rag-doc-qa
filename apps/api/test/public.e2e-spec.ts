@@ -52,6 +52,8 @@ describe('Public widget API (e2e)', () => {
     expect(res.body.name).toBe('Public Bot');
     expect(res.body.showBadge).toBe(true);
     expect(res.body.publicKey).toBeUndefined();
+    // Readable cross-origin so the launcher can style itself on any embedding domain.
+    expect(res.headers['access-control-allow-origin']).toBe('*');
   });
 
   it('returns 404 for an unknown public key', async () => {
