@@ -1,7 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { Bot } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
 import { BillingService } from '../billing/billing.service';
+import { IconsService } from '../icons/icons.service';
 import { BotsRepository } from './bots.repository';
 import { BotsService } from './bots.service';
 
@@ -25,7 +26,8 @@ function buildBot(overrides: Partial<Bot> = {}): Bot {
 function buildService() {
   const repo = mockDeep<BotsRepository>();
   const billing = mockDeep<BillingService>();
-  return { repo, billing, service: new BotsService(repo, billing) };
+  const icons = mockDeep<IconsService>();
+  return { repo, billing, icons, service: new BotsService(repo, billing, icons) };
 }
 
 describe('BotsService', () => {
@@ -104,5 +106,17 @@ describe('BotsService', () => {
     await service.update('a1', 'b1', { launcherIcon: '🤖' });
 
     expect(repo.update).toHaveBeenCalledWith('b1', { launcherIcon: '🤖' });
+  });
+
+  it('update rejects a Solar launcher icon that does not resolve', async () => {
+    const { repo, billing, icons, service } = buildService();
+    repo.findById.mockResolvedValue(buildBot({ accountId: 'a1' }));
+    billing.accountPlan.mockResolvedValue('PRO');
+    icons.resolves.mockReturnValue(false);
+
+    await expect(
+      service.update('a1', 'b1', { launcherIcon: 'solar:does-not-exist' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repo.update).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,12 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Bot } from '@prisma/client';
 import { BillingService } from '../billing/billing.service';
+import { IconsService } from '../icons/icons.service';
 import { BotsRepository } from './bots.repository';
 import { generatePublicKey } from './public-key';
 import type { CreateBotInput } from './schemas/create-bot.schema';
@@ -20,6 +26,7 @@ export class BotsService {
   constructor(
     private readonly repo: BotsRepository,
     private readonly billing: BillingService,
+    private readonly icons: IconsService,
   ) {}
 
   async create(accountId: string, input: CreateBotInput): Promise<Bot> {
@@ -52,7 +59,15 @@ export class BotsService {
   async update(accountId: string, botId: string, input: UpdateBotInput): Promise<Bot> {
     await this.getOwned(accountId, botId);
     await this.assertAppearanceAllowed(accountId, input);
+    this.assertIconResolves(input.launcherIcon);
     return this.repo.update(botId, input);
+  }
+
+  /** Reject a Solar launcher id that doesn't resolve, so the public config never 500s on it later. */
+  private assertIconResolves(launcherIcon: string | undefined): void {
+    if (launcherIcon?.startsWith('solar:') && !this.icons.resolves(launcherIcon)) {
+      throw new BadRequestException('Unknown launcher icon');
+    }
   }
 
   /** Widget customization (color, greeting, launcher icon, badge) is gated to the Pro plan. */

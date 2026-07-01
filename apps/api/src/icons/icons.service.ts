@@ -30,9 +30,21 @@ export class IconsService {
     return `<svg xmlns="http://www.w3.org/2000/svg" ${attrs}>${body}</svg>`;
   }
 
-  /** A stored launcher value is a Solar id (→ SVG) or a plain emoji (→ null). */
+  /** A stored launcher value is a Solar id (→ SVG) or a plain emoji (→ null). Never throws, so a
+   * stale/invalid stored id can't 500 the public config the widget depends on. */
   launcherSvg(value: string): string | null {
-    return value.startsWith('solar:') ? this.render(value) : null;
+    if (!value.startsWith('solar:')) return null;
+    try {
+      return this.render(value);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Whether a Solar id resolves to a real icon (id may be `solar:foo-bold` or `foo-bold`). */
+  resolves(id: string): boolean {
+    const key = id.startsWith('solar:') ? id.slice('solar:'.length) : id;
+    return getIconData(solar, key) !== null;
   }
 
   search(query: string, style: string, limit = SEARCH_LIMIT): IconResult[] {

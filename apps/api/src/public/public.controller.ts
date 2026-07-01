@@ -16,7 +16,6 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Bot } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { BillingService } from '../billing/billing.service';
-import { limitsFor } from '../billing/plans';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
 import { IconsService } from '../icons/icons.service';
@@ -28,17 +27,7 @@ import type { RetrievedChunk } from '../documents/documents.types';
 import { isConfident } from '../retrieval/confidence';
 import { ZodValidationPipe } from '../shared/pipes/zod-validation.pipe';
 import { hostAllowed } from './host';
-
-interface PublicBotConfig {
-  name: string;
-  greeting: string;
-  color: string;
-  launcherIcon: string;
-  iconColor: string;
-  // Pre-rendered SVG when the launcher is a Solar icon; null for a plain emoji.
-  launcherSvg: string | null;
-  showBadge: boolean;
-}
+import { type PublicBotConfig, toPublicBotConfig } from './public-bot-config';
 
 // A `type` (not interface) so it stays assignable to Prisma's InputJsonValue index signature.
 type CitationRecord = { filename: string; chunkIndex: number };
@@ -69,21 +58,11 @@ export class PublicController {
     private readonly icons: IconsService,
   ) {}
 
-  // Public display config (no secrets). The "Powered by" badge can only be hidden on a paid plan.
   @Get()
   async config(@Param('publicKey') publicKey: string): Promise<PublicBotConfig> {
     const bot = await this.bots.getByPublicKey(publicKey);
     const plan = await this.billing.accountPlan(bot.accountId);
-    const showBadge = limitsFor(plan).badgeRemoval ? bot.showBadge : true;
-    return {
-      name: bot.name,
-      greeting: bot.greeting,
-      color: bot.color,
-      launcherIcon: bot.launcherIcon,
-      iconColor: bot.iconColor,
-      launcherSvg: this.icons.launcherSvg(bot.launcherIcon),
-      showBadge,
-    };
+    return toPublicBotConfig(bot, plan, this.icons.launcherSvg(bot.launcherIcon));
   }
 
   @Post('chat')
