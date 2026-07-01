@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getAnalytics } from '@/lib/analytics';
 import type { BotAnalytics, ConversationView } from '@/lib/types';
+import { ConversationModal, StatusTag, metaLine } from './conversation-modal';
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
@@ -15,13 +16,35 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function QuestionRow({ item }: { item: ConversationView }) {
+// A clickable conversation row; opens the full transcript in a modal (the list only previews it).
+function ConversationRow({
+  item,
+  showAnswer,
+  onOpen,
+}: {
+  item: ConversationView;
+  showAnswer: boolean;
+  onOpen: (c: ConversationView) => void;
+}) {
   return (
-    <li className="rounded-md border border-border bg-card px-3 py-2">
-      <p className="text-sm">{item.question}</p>
-      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-        {item.visitorEmail ?? 'no email'} · {new Date(item.createdAt).toLocaleString()}
-      </p>
+    <li>
+      <button
+        type="button"
+        onClick={() => onOpen(item)}
+        className="w-full rounded-md border border-border bg-card px-3 py-2 text-left transition hover:border-foreground/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <p className="text-sm font-medium">{item.question}</p>
+        {showAnswer ? (
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.answer}</p>
+        ) : null}
+        <p className="mt-1 flex flex-wrap items-center gap-x-2">
+          <StatusTag answered={item.answered} />
+          <span className="font-mono text-[10px] text-muted-foreground/70">· click to view</span>
+        </p>
+        {showAnswer ? null : (
+          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{metaLine(item)}</p>
+        )}
+      </button>
     </li>
   );
 }
@@ -29,6 +52,7 @@ function QuestionRow({ item }: { item: ConversationView }) {
 export function AnalyticsPanel({ botId }: { botId: string }) {
   const [data, setData] = useState<BotAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<ConversationView | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -74,7 +98,7 @@ export function AnalyticsPanel({ botId }: { botId: string }) {
       ) : (
         <ul className="flex flex-col gap-2">
           {data.unanswered.map((item) => (
-            <QuestionRow key={item.id} item={item} />
+            <ConversationRow key={item.id} item={item} showAnswer={false} onOpen={setSelected} />
           ))}
         </ul>
       )}
@@ -85,20 +109,14 @@ export function AnalyticsPanel({ botId }: { botId: string }) {
       ) : (
         <ul className="flex flex-col gap-3">
           {data.recent.map((item) => (
-            <li key={item.id} className="rounded-md border border-border bg-card px-3 py-2">
-              <p className="text-sm font-medium">{item.question}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.answer}</p>
-              <span
-                className={`mt-1 inline-block font-mono text-[10px] uppercase tracking-wider ${
-                  item.answered ? 'text-muted-foreground' : 'text-destructive'
-                }`}
-              >
-                {item.answered ? 'answered' : 'unanswered'}
-              </span>
-            </li>
+            <ConversationRow key={item.id} item={item} showAnswer onOpen={setSelected} />
           ))}
         </ul>
       )}
+
+      {selected ? (
+        <ConversationModal conversation={selected} onClose={() => setSelected(null)} />
+      ) : null}
     </section>
   );
 }
