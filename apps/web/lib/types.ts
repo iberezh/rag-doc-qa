@@ -47,6 +47,8 @@ export interface Bot {
   allowedDomains: string[];
   greeting: string;
   color: string;
+  launcherIcon: string;
+  iconColor: string;
   showBadge: boolean;
   createdAt: string;
 }

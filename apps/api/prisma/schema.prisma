@@ -64,6 +64,8 @@ model Bot {
   allowedDomains String[]   @default([]) @map("allowed_domains")
   greeting       String     @default("Hi! Ask me anything about our docs.")
   color          String     @default("#c0492c")
+  launcherIcon   String     @default("💬") @map("launcher_icon")
+  iconColor      String     @default("#ffffff") @map("icon_color")
   showBadge      Boolean        @default(true) @map("show_badge")
   createdAt      DateTime       @default(now()) @map("created_at")
   documents      Document[]

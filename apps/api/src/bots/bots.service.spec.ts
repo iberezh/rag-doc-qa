@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { Bot } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
 import { BillingService } from '../billing/billing.service';
@@ -14,6 +14,8 @@ function buildBot(overrides: Partial<Bot> = {}): Bot {
     allowedDomains: [],
     greeting: 'Hi',
     color: '#c0492c',
+    launcherIcon: '💬',
+    iconColor: '#ffffff',
     showBadge: true,
     createdAt: new Date(),
     ...overrides,
@@ -69,5 +71,38 @@ describe('BotsService', () => {
 
     await expect(service.remove('a1', 'b1')).rejects.toBeInstanceOf(NotFoundException);
     expect(repo.delete).not.toHaveBeenCalled();
+  });
+
+  it('update allows non-appearance fields (name) without a plan check', async () => {
+    const { repo, billing, service } = buildService();
+    repo.findById.mockResolvedValue(buildBot({ accountId: 'a1' }));
+    repo.update.mockResolvedValue(buildBot({ name: 'Renamed' }));
+
+    await service.update('a1', 'b1', { name: 'Renamed' });
+
+    expect(repo.update).toHaveBeenCalledWith('b1', { name: 'Renamed' });
+    expect(billing.accountPlan).not.toHaveBeenCalled();
+  });
+
+  it('update rejects widget-appearance changes on a non-Pro plan', async () => {
+    const { repo, billing, service } = buildService();
+    repo.findById.mockResolvedValue(buildBot({ accountId: 'a1' }));
+    billing.accountPlan.mockResolvedValue('FREE');
+
+    await expect(service.update('a1', 'b1', { color: '#000000' })).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+    expect(repo.update).not.toHaveBeenCalled();
+  });
+
+  it('update allows widget-appearance changes on Pro', async () => {
+    const { repo, billing, service } = buildService();
+    repo.findById.mockResolvedValue(buildBot({ accountId: 'a1' }));
+    billing.accountPlan.mockResolvedValue('PRO');
+    repo.update.mockResolvedValue(buildBot({ launcherIcon: '🤖' }));
+
+    await service.update('a1', 'b1', { launcherIcon: '🤖' });
+
+    expect(repo.update).toHaveBeenCalledWith('b1', { launcherIcon: '🤖' });
   });
 });

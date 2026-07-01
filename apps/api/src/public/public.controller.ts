@@ -19,6 +19,7 @@ import { BillingService } from '../billing/billing.service';
 import { limitsFor } from '../billing/plans';
 import { BotsService } from '../bots/bots.service';
 import { ChatService } from '../chat/chat.service';
+import { IconsService } from '../icons/icons.service';
 import { MESSAGE_LIMIT_MESSAGE, isNonAnswer } from '../chat/chat.constants';
 import { ChatSchema, type ChatInput } from '../chat/schemas/chat.schema';
 import { ConversationsService } from '../conversations/conversations.service';
@@ -32,6 +33,10 @@ interface PublicBotConfig {
   name: string;
   greeting: string;
   color: string;
+  launcherIcon: string;
+  iconColor: string;
+  // Pre-rendered SVG when the launcher is a Solar icon; null for a plain emoji.
+  launcherSvg: string | null;
   showBadge: boolean;
 }
 
@@ -61,6 +66,7 @@ export class PublicController {
     private readonly chat: ChatService,
     private readonly conversations: ConversationsService,
     private readonly billing: BillingService,
+    private readonly icons: IconsService,
   ) {}
 
   // Public display config (no secrets). The "Powered by" badge can only be hidden on a paid plan.
@@ -69,7 +75,15 @@ export class PublicController {
     const bot = await this.bots.getByPublicKey(publicKey);
     const plan = await this.billing.accountPlan(bot.accountId);
     const showBadge = limitsFor(plan).badgeRemoval ? bot.showBadge : true;
-    return { name: bot.name, greeting: bot.greeting, color: bot.color, showBadge };
+    return {
+      name: bot.name,
+      greeting: bot.greeting,
+      color: bot.color,
+      launcherIcon: bot.launcherIcon,
+      iconColor: bot.iconColor,
+      launcherSvg: this.icons.launcherSvg(bot.launcherIcon),
+      showBadge,
+    };
   }
 
   @Post('chat')

@@ -8,6 +8,12 @@ export const UpdateBotSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional(),
+  // A plain emoji or a Solar icon id like `solar:chat-round-bold`.
+  launcherIcon: z.string().min(1).max(64).optional(),
+  iconColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   showBadge: z.boolean().optional(),
 });
 

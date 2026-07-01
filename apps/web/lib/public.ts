@@ -6,6 +6,9 @@ export interface PublicBotConfig {
   name: string;
   greeting: string;
   color: string;
+  launcherIcon: string;
+  iconColor: string;
+  launcherSvg: string | null;
   showBadge: boolean;
 }
 
