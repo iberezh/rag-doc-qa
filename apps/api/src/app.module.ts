@@ -9,6 +9,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { RetrievalModule } from './retrieval/retrieval.module';
 import { ChatModule } from './chat/chat.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { IconsModule } from './icons/icons.module';
 import { PublicModule } from './public/public.module';
 import { HealthModule } from './health/health.module';
 
@@ -24,6 +25,7 @@ import { HealthModule } from './health/health.module';
     RetrievalModule,
     ChatModule,
     ConversationsModule,
+    IconsModule,
     PublicModule,
     HealthModule,
   ],

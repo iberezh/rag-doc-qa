@@ -1,7 +1,12 @@
 import { API_BASE, errorMessage, jsonOf } from './api';
 import type { Bot } from './types';
 
-export type BotPatch = Partial<Pick<Bot, 'name' | 'allowedDomains' | 'greeting' | 'color' | 'showBadge'>>;
+export type BotPatch = Partial<
+  Pick<
+    Bot,
+    'name' | 'allowedDomains' | 'greeting' | 'color' | 'launcherIcon' | 'iconColor' | 'showBadge'
+  >
+>;
 
 async function asBot(res: Response): Promise<Bot> {
   if (!res.ok) {

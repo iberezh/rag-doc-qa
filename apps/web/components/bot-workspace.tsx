@@ -10,12 +10,15 @@ import type { Bot } from '@/lib/types';
 import { Logo } from '@/components/landing/logo';
 import { AccountMenu } from './account-menu';
 import { AnalyticsPanel } from './analytics-panel';
+import { AppearancePanel } from './appearance-panel';
 import { Button } from './ui/button';
 import { ChatPanel } from './chat-panel';
 import { EmbedPanel } from './embed-panel';
 import { LibraryPanel } from './library-panel';
 
 type View = 'chat' | 'analytics';
+
+const isView = (value: string | null): value is View => value === 'chat' || value === 'analytics';
 
 export function BotWorkspace({ botId }: { botId: string }) {
   const library = useLibrary(botId);
@@ -34,6 +37,19 @@ export function BotWorkspace({ botId }: { botId: string }) {
       active = false;
     };
   }, [botId]);
+
+  // Restore the active tab from the URL so a reload keeps you where you were.
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (isView(tab)) setView(tab);
+  }, []);
+
+  const changeView = (next: View): void => {
+    setView(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', next);
+    window.history.replaceState({}, '', url);
+  };
 
   return (
     <div className="relative z-[2] flex h-screen flex-col">
@@ -54,7 +70,7 @@ export function BotWorkspace({ botId }: { botId: string }) {
             size="sm"
             variant={view === 'chat' ? 'secondary' : 'ghost'}
             aria-pressed={view === 'chat'}
-            onClick={() => setView('chat')}
+            onClick={() => changeView('chat')}
           >
             Test chat
           </Button>
@@ -62,7 +78,7 @@ export function BotWorkspace({ botId }: { botId: string }) {
             size="sm"
             variant={view === 'analytics' ? 'secondary' : 'ghost'}
             aria-pressed={view === 'analytics'}
-            onClick={() => setView('analytics')}
+            onClick={() => changeView('analytics')}
           >
             Analytics
           </Button>
@@ -71,7 +87,11 @@ export function BotWorkspace({ botId }: { botId: string }) {
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(300px,380px)_1fr]">
-        <LibraryPanel library={library} embed={bot ? <EmbedPanel bot={bot} /> : undefined} />
+        <LibraryPanel
+          library={library}
+          embed={bot ? <EmbedPanel bot={bot} /> : undefined}
+          appearance={bot ? <AppearancePanel bot={bot} /> : undefined}
+        />
         {view === 'chat' ? (
           <ChatPanel
             exchanges={chat.exchanges}

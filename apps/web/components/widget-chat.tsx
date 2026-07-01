@@ -19,6 +19,9 @@ const FALLBACK_CONFIG: PublicBotConfig = {
   name: 'Support',
   greeting: 'Hi! How can I help?',
   color: FALLBACK_ACCENT,
+  launcherIcon: '💬',
+  iconColor: '#ffffff',
+  launcherSvg: null,
   showBadge: true,
 };
 
@@ -84,18 +87,30 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
     }
   };
 
-  const accent = config && HEX_COLOR.test(config.color) ? config.color : FALLBACK_ACCENT;
+  // Wait for the config before painting so the themed UI doesn't flash fallback colors first.
+  if (!config) {
+    return (
+      <div
+        className="flex h-screen items-center justify-center bg-white"
+        role="status"
+        aria-label="Loading chat"
+      >
+        <span className="h-7 w-7 animate-spin rounded-full border-2 border-black/10 border-t-black/40" />
+      </div>
+    );
+  }
+  const accent = HEX_COLOR.test(config.color) ? config.color : FALLBACK_ACCENT;
   const inputClass =
     'w-full rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40';
 
   return (
     <div className="flex h-screen flex-col bg-white text-[#1a1a1a]">
       <header className="px-4 py-3 text-white" style={{ backgroundColor: accent }}>
-        <p className="font-display text-base font-semibold">{config?.name ?? 'Chat'}</p>
+        <p className="font-display text-base font-semibold">{config.name}</p>
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4 text-sm" aria-live="polite">
-        <Bubble role="assistant">{config?.greeting ?? 'Hi! How can I help?'}</Bubble>
+        <Bubble role="assistant">{config.greeting}</Bubble>
         {messages.map((m) => {
           // Visitors can't open the source docs, so strip [n] citation markers from replies.
           const text = m.role === 'assistant' ? stripCitations(m.text) : m.text;
@@ -121,7 +136,7 @@ export function WidgetChat({ publicKey, host }: { publicKey: string; host: strin
         />
       </form>
 
-      {config?.showBadge ? (
+      {config.showBadge ? (
         <a
           href="https://helpbase.iberezh.site"
           target="_blank"

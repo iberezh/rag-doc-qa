@@ -56,15 +56,24 @@ describe('Bots (e2e)', () => {
     expect(res.status).toBe(404);
   });
 
-  it('updates appearance fields', async () => {
-    const res = await request(app.getHttpServer())
+  it('gates appearance fields to Pro, then allows them after upgrade', async () => {
+    const appearance = { greeting: 'Hello there', color: '#123456' };
+
+    const free = await request(app.getHttpServer())
       .patch(`/api/bots/${botId}`)
       .set('Cookie', alice.cookie)
-      .send({ greeting: 'Hello there', color: '#123456' });
+      .send(appearance);
+    expect(free.status).toBe(403);
 
-    expect(res.status).toBe(200);
-    expect(res.body.greeting).toBe('Hello there');
-    expect(res.body.color).toBe('#123456');
+    await prisma.account.update({ where: { id: alice.accountId }, data: { plan: 'PRO' } });
+
+    const pro = await request(app.getHttpServer())
+      .patch(`/api/bots/${botId}`)
+      .set('Cookie', alice.cookie)
+      .send(appearance);
+    expect(pro.status).toBe(200);
+    expect(pro.body.greeting).toBe('Hello there');
+    expect(pro.body.color).toBe('#123456');
   });
 
   it('deletes a bot the account owns', async () => {
