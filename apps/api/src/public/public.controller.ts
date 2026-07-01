@@ -3,6 +3,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -58,7 +59,10 @@ export class PublicController {
     private readonly icons: IconsService,
   ) {}
 
+  // Readable from any origin: the widget launcher fetches this from arbitrary customer domains,
+  // and it carries no secrets or auth cookie (unlike the origin-locked authed routes).
   @Get()
+  @Header('Access-Control-Allow-Origin', '*')
   async config(@Param('publicKey') publicKey: string): Promise<PublicBotConfig> {
     const bot = await this.bots.getByPublicKey(publicKey);
     const plan = await this.billing.accountPlan(bot.accountId);
